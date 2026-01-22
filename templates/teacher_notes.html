@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Classroom - Recorded Notes</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* General Styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+
+        :root {
+            --primary-blue: #0A1B4F;
+            --secondary-blue: #1C3373;
+            --accent-green: #2ecc71;
+            --text-dark: #333;
+            --text-light: #f4f7fa;
+            --bg-light: #f8faff;
+            --white: #ffffff;
+            --grey-text: #6e7a8e;
+            --shadow-light: rgba(0, 0, 0, 0.08);
+            --shadow-medium: rgba(0, 0, 0, 0.15);
+            --transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+
+        body {
+            background: linear-gradient(135deg, #e0f2f7, #c7e8f0);
+            min-height: 100vh;
+            color: var(--text-dark);
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* Abstract Shapes */
+        body::before, body::after {
+            content: '';
+            position: absolute;
+            background-repeat: no-repeat;
+            opacity: 0.1;
+            z-index: -1;
+        }
+        body::before {
+            width: 300px;
+            height: 300px;
+            top: -50px;
+            left: -50px;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'%3E%3Cdefs%3E%3ClinearGradient id='a' x1='0%' y1='0%' x2='100%' y2='100%'%3E%3Cstop offset='0%' stop-color='%231C3373'/%3E%3Cstop offset='100%' stop-color='%230A1B4F'/%3E%3C/linearGradient%3E%3C/defs%3E%3Ccircle cx='100' cy='100' r='90' fill='url(%23a)'/%3E%3C/svg%3E");
+            transform: rotate(30deg);
+            animation: moveShape1 10s infinite alternate;
+        }
+        body::after {
+            width: 250px;
+            height: 250px;
+            bottom: -70px;
+            right: -70px;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'%3E%3Cdefs%3E%3ClinearGradient id='a' x1='0%' y1='0%' x2='100%' y2='100%'%3E%3Cstop offset='0%' stop-color='%232ecc71'/%3E%3Cstop offset='100%' stop-color='%231C3373'/%3E%3C/linearGradient%3E%3C/defs%3E%3Cpolygon points='100,0 200,75 160,200 40,200 0,75' fill='url(%23a)'/%3E%3C/svg%3E");
+            transform: rotate(-45deg);
+            animation: moveShape2 12s infinite alternate-reverse;
+        }
+        @keyframes moveShape1 {
+            from { transform: translate(-50px, -50px) rotate(30deg); }
+            to { transform: translate(50px, 50px) rotate(60deg); }
+        }
+        @keyframes moveShape2 {
+            from { transform: translate(70px, 70px) rotate(-45deg); }
+            to { transform: translate(-70px, -70px) rotate(-15deg); }
+        }
+
+        /* Progress Bar */
+        .progress-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 5px;
+            background-color: var(--accent-green);
+            box-shadow: 0 0 10px var(--accent-green);
+            z-index: 1001;
+            width: 0;
+            transition: width 0.2s linear;
+        }
+
+        /* Back to Top Button */
+        .back-to-top {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 55px;
+            height: 55px;
+            background-color: var(--secondary-blue);
+            color: var(--white);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            opacity: 0;
+            visibility: hidden;
+            transition: var(--transition);
+            box-shadow: 0 5px 15px var(--shadow-medium);
+            z-index: 1000;
+        }
+        .back-to-top:hover {
+            background-color: var(--accent-green);
+            transform: translateY(-8px) scale(1.05);
+            box-shadow: 0 8px 20px var(--accent-green);
+        }
+        .back-to-top.visible {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* Navigation */
+        nav {
+            background-color: var(--primary-blue);
+            box-shadow: 0 5px 15px var(--shadow-medium);
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1002;
+            transition: var(--transition);
+        }
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .logo {
+            display: flex;
+            align-items: center;
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--white);
+            text-decoration: none;
+            transition: var(--transition);
+        }
+        .logo:hover {
+            transform: scale(1.05);
+        }
+        .logo i {
+            margin-right: 0.5rem;
+            font-size: 2.2rem;
+            animation: float 3s infinite ease-in-out;
+            color: var(--accent-green);
+        }
+        @keyframes float {
+            0% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+            100% { transform: translateY(0); }
+        }
+        .hamburger {
+            display: flex;
+            flex-direction: column;
+            cursor: pointer;
+            padding: 5px;
+            z-index: 1004;
+        }
+        .hamburger span {
+            width: 25px;
+            height: 3px;
+            background-color: var(--white);
+            margin: 3px 0;
+            transition: var(--transition);
+        }
+        .hamburger.active span:nth-child(1) {
+            transform: rotate(-45deg) translate(-5px, 6px);
+        }
+        .hamburger.active span:nth-child(2) {
+            opacity: 0;
+        }
+        .hamburger.active span:nth-child(3) {
+            transform: rotate(45deg) translate(-5px, -6px);
+        }
+
+        /* Sidebar Menu */
+        .sidebar {
+            position: fixed;
+            top: 70px;
+            right: -300px;
+            width: 300px;
+            height: calc(100vh - 70px);
+            background-color: var(--secondary-blue);
+            transition: var(--transition);
+            z-index: 1003;
+            overflow-y: auto;
+            overflow-x: hidden;
+            box-shadow: -2px 0 10px var(--shadow-medium);
+        }
+        .sidebar.active {
+            right: 0;
+        }
+        .sidebar-menu {
+            padding: 1rem 1.5rem;
+        }
+        .sidebar-item {
+            padding: 1rem 1.5rem;
+            color: var(--white);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            text-decoration: none;
+            position: relative;
+            overflow: hidden;
+        }
+        .sidebar-item::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 0;
+            height: 100%;
+            background-color: var(--accent-green);
+            transition: width 0.3s ease;
+            z-index: -1;
+        }
+        .sidebar-item:hover::before {
+            width: 100%;
+        }
+        .sidebar-item.active {
+            background-color: var(--accent-green);
+            color: var(--white);
+        }
+        .sidebar-item i {
+            transition: var(--transition);
+            color: var(--accent-green);
+        }
+
+        /* Main Content */
+        main {
+            transition: margin-right .5s;
+            padding: 3rem 2rem;
+            max-width: 900px;
+            margin: 70px auto 40px;
+        }
+        .container {
+            background: var(--white);
+            border-radius: 20px;
+            padding: 2.5rem;
+            box-shadow: 0 10px 30px var(--shadow-light);
+            opacity: 0;
+            transform: translateY(50px);
+            transition: opacity 1s cubic-bezier(0.25, 0.8, 0.25, 1), transform 1s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+        .container.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        h1 {
+            color: var(--primary-blue);
+            font-size: 2.8rem;
+            text-align: center;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            position: relative;
+        }
+        h1::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--secondary-blue), var(--accent-green));
+            animation: expandWidth 1.8s cubic-bezier(0.25, 0.8, 0.25, 1) forwards;
+            border-radius: 2px;
+        }
+        @keyframes expandWidth {
+            from { width: 0; }
+            to { width: 100%; }
+        }
+        h2 {
+            color: var(--primary-blue);
+            font-size: 1.6rem;
+            margin: 2rem 0 1rem;
+            font-weight: 600;
+            border-bottom: 2px solid var(--accent-green);
+            padding-bottom: 0.5rem;
+            display: inline-block;
+        }
+
+        /* Textarea & Controls */
+        textarea {
+            width: 100%;
+            min-height: 220px;
+            padding: 1.2rem;
+            font-size: 1.05rem;
+            line-height: 1.6;
+            border: 1.5px solid #d8dde7;
+            border-radius: 12px;
+            resize: vertical;
+            color: var(--text-dark);
+            background: #fafcff;
+            transition: var(--transition);
+        }
+        textarea:focus {
+            border-color: var(--accent-green);
+            box-shadow: 0 0 0 4px rgba(46, 204, 113, 0.2);
+            outline: none;
+        }
+
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            justify-content: center;
+            margin: 1.8rem 0 1.5rem;
+        }
+        button {
+            padding: 0.9rem 1.8rem;
+            font-size: 1rem;
+            font-weight: 600;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: var(--transition);
+            min-width: 140px;
+        }
+        button.primary {
+            background: var(--accent-green);
+            color: var(--white);
+        }
+        button.primary:hover {
+            background: var(--secondary-blue);
+            transform: translateY(-3px);
+        }
+        button.stop {
+            background: #e74c3c;
+            color: white;
+        }
+        button.stop:hover {
+            background: #c0392b;
+            transform: translateY(-3px);
+        }
+        button.delete {
+            background: #e74c3c;
+            color: white;
+        }
+        button.delete:hover {
+            background: #c0392b;
+            transform: translateY(-3px);
+        }
+        button:disabled {
+            background: #bdc3c7;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        #status {
+            text-align: center;
+            font-size: 1.05rem;
+            font-weight: 500;
+            min-height: 1.6em;
+            color: var(--grey-text);
+            margin: 1rem 0;
+        }
+
+        /* Notes List */
+        .notes-section {
+            margin-top: 2rem;
+        }
+        .note {
+            background: #f9f9f9;
+            border-radius: 12px;
+            padding: 1.2rem;
+            margin-bottom: 1.2rem;
+            border-left: 4px solid var(--primary-blue);
+            position: relative;
+            transition: var(--transition);
+        }
+        .note:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+        }
+        .note-time {
+            font-size: 0.9rem;
+            color: var(--grey-text);
+            margin-bottom: 0.6rem;
+        }
+        .note-text {
+            white-space: pre-wrap;
+            line-height: 1.6;
+            color: var(--text-dark);
+        }
+        .note-actions {
+            margin-top: 1rem;
+            text-align: right;
+        }
+        .btn-delete-note {
+            padding: 0.6rem 1.2rem;
+            font-size: 0.9rem;
+            background: #e74c3c;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+        .btn-delete-note:hover {
+            background: #c0392b;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 2rem;
+            color: var(--grey-text);
+            font-style: italic;
+            font-size: 1.1rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            main { padding: 1.5rem; }
+            .container { padding: 2rem; }
+            h1 { font-size: 2.3rem; }
+            .controls button { min-width: 48%; }
+            .sidebar { width: 100%; max-width: 300px; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Progress Bar -->
+    <div class="progress-bar" id="progressBar"></div>
+
+    <!-- Back to Top Button -->
+    <div class="back-to-top" id="backToTop">
+        <i class="fas fa-arrow-up"></i>
+    </div>
+
+    <!-- Navigation -->
+    <nav>
+        <div class="nav-container">
+            <a href="{{ url_for('teacher_home') }}" class="logo">
+                <i class="fas fa-graduation-cap"></i>
+                Smart Classroom - Teacher Portal
+            </a>
+            <div class="hamburger" id="hamburger">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Sidebar Menu (exactly matching the template) -->
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-menu">
+            <a href="{{ url_for('teacher_home') }}" class="sidebar-item">
+                <span>Home</span>
+                <i class="fas fa-home"></i>
+            </a>
+            <a href="{{ url_for('teacher_assignment') }}" class="sidebar-item">
+                <span>Post an Assignment</span>
+                <i class="fas fa-calendar-alt"></i>
+            </a>
+            <a href="{{ url_for('teacher_notice') }}" class="sidebar-item">
+                <span>Post a Notice</span>
+                <i class="fas fa-bell"></i>
+            </a>
+            <a href="{{ url_for('teacher_recorded_class') }}" class="sidebar-item">
+                <span>Recorded Classes</span>
+                <i class="fas fa-video"></i>
+            </a>
+            <a href="{{ url_for('teacher_query') }}" class="sidebar-item">
+                <span>Send a Query</span>
+                <i class="fas fa-question-circle"></i>
+            </a>
+            <a href="{{ url_for('teacher_fa') }}" class="sidebar-item">
+                <span>Faculty Advisor</span>
+                <i class="fas fa-user-graduate"></i>
+            </a>
+            <a href="{{ url_for('teacher_study') }}" class="sidebar-item">
+                <span>Upload Study Material</span>
+                <i class="fas fa-book"></i>
+            </a>
+            <a href="{{ url_for('teacher_analytics') }}" class="sidebar-item">
+                <span>Students Analytics Dashboard</span>
+                <i class="fas fa-chart-bar"></i>
+            </a>
+            <a href="{{ url_for('teacher_attendance') }}" class="sidebar-item">
+                <span>Attendance Management</span>
+                <i class="fas fa-calendar-check"></i>
+            </a>
+            <a href="{{ url_for('teacher_profile') }}" class="sidebar-item">
+                <span>Teacher Profile</span>
+                <i class="fas fa-user"></i>
+            </a>
+            <a href="{{ url_for('teacher_notes') }}" class="sidebar-item active">
+                <span>Recorded Notes</span>
+                <i class="fas fa-sticky-note"></i>
+            </a>
+            <a href="{{ url_for('teacher_settings') }}" class="sidebar-item">
+                <span>Settings</span>
+                <i class="fas fa-cog"></i>
+            </a>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <main>
+        <div class="container">
+            <h1>Recorded Notes (Speech to Text)</h1>
+
+            <textarea id="transcript" placeholder="Your live speech will appear here as you speak..."></textarea>
+
+            <div class="controls">
+                <button id="start-btn" class="primary"><i class="fas fa-microphone"></i> Start Recording</button>
+                <button id="stop-btn" class="stop" disabled><i class="fas fa-stop"></i> Stop Recording</button>
+                <button id="save-note-btn" class="primary"><i class="fas fa-save"></i> Save Note</button>
+                <button id="delete-current-note-btn" class="delete"><i class="fas fa-trash-alt"></i> Clear Current</button>
+            </div>
+
+            <p id="status"></p>
+
+            <div class="notes-section">
+                <h2>Saved Notes</h2>
+                <div id="notesContainer"></div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // Content Animation
+        window.addEventListener('load', function() {
+            document.querySelectorAll('.container').forEach(section => {
+                section.classList.add('visible');
+            });
+        });
+
+        // Progress Bar
+        window.addEventListener('scroll', function() {
+            const scrollPosition = window.scrollY;
+            const documentHeight = document.documentElement.scrollHeight - window.innerHeight;
+            const scrollPercentage = documentHeight > 0 ? (scrollPosition / documentHeight) * 100 : 0;
+            document.getElementById('progressBar').style.width = scrollPercentage + '%';
+        });
+
+        // Back to Top Button
+        const backToTopButton = document.getElementById('backToTop');
+        window.addEventListener('scroll', function() {
+            if (window.scrollY > 400) {
+                backToTopButton.classList.add('visible');
+            } else {
+                backToTopButton.classList.remove('visible');
+            }
+        });
+        backToTopButton.addEventListener('click', function() {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+
+        // Hamburger Menu Toggle
+        const hamburger = document.getElementById('hamburger');
+        const sidebar = document.getElementById('sidebar');
+        hamburger.addEventListener('click', function(e) {
+            e.stopPropagation();
+            hamburger.classList.toggle('active');
+            sidebar.classList.toggle('active');
+        });
+
+        // Close Sidebar on Outside Click
+        document.addEventListener('click', (e) => {
+            if (!sidebar.contains(e.target) && !hamburger.contains(e.target)) {
+                sidebar.classList.remove('active');
+                hamburger.classList.remove('active');
+            }
+        });
+
+        // Core functionality (speech + notes)
+        const transcriptArea = document.getElementById('transcript');
+        const status = document.getElementById('status');
+        const startBtn = document.getElementById('start-btn');
+        const stopBtn = document.getElementById('stop-btn');
+        const saveNoteBtn = document.getElementById('save-note-btn');
+        const deleteCurrentBtn = document.getElementById('delete-current-note-btn');
+        const notesContainer = document.getElementById('notesContainer');
+
+        function showStatus(msg, duration = 2200) {
+            status.textContent = msg;
+            setTimeout(() => { status.textContent = ''; }, duration);
+        }
+
+        function loadNotes() {
+            const notes = JSON.parse(localStorage.getItem('liveClassNotesFolder')) || [];
+            notesContainer.innerHTML = notes.length ? '' : '<p class="empty-state">No saved notes yet. Start recording!</p>';
+
+            notes.forEach((note, index) => {
+                const noteEl = document.createElement('div');
+                noteEl.className = 'note';
+                noteEl.innerHTML = `
+                    <div class="note-time">${new Date(note.timestamp).toLocaleString()}</div>
+                    <div class="note-text">${note.text}</div>
+                    <div class="note-actions">
+                        <button class="btn-delete-note" onclick="deleteNote(${index})">
+                            <i class="fas fa-trash"></i> Delete
+                        </button>
+                    </div>
+                `;
+                notesContainer.appendChild(noteEl);
+            });
+        }
+
+        function saveNote() {
+            const text = transcriptArea.value.trim();
+            if (!text) return showStatus('⚠️ Cannot save an empty note.');
+            
+            const notes = JSON.parse(localStorage.getItem('liveClassNotesFolder')) || [];
+            notes.push({ text, timestamp: Date.now() });
+            localStorage.setItem('liveClassNotesFolder', JSON.stringify(notes));
+            showStatus('✅ Note saved successfully!');
+            loadNotes();
+        }
+
+        function deleteNote(index) {
+            if (!confirm('Delete this saved note?')) return;
+            const notes = JSON.parse(localStorage.getItem('liveClassNotesFolder')) || [];
+            notes.splice(index, 1);
+            localStorage.setItem('liveClassNotesFolder', JSON.stringify(notes));
+            showStatus('🗑️ Note deleted.');
+            loadNotes();
+        }
+
+        // Speech Recognition
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        let recognition = null;
+
+        if (SpeechRecognition) {
+            recognition = new SpeechRecognition();
+            recognition.continuous = true;
+            recognition.interimResults = true;
+            recognition.lang = 'en-US';
+
+            recognition.onstart = () => {
+                showStatus('🎤 Listening... Speak clearly now.');
+                startBtn.disabled = true;
+                stopBtn.disabled = false;
+            };
+
+            recognition.onresult = (event) => {
+                let interim = '';
+                let final = '';
+                for (let i = event.resultIndex; i < event.results.length; ++i) {
+                    const transcriptPart = event.results[i][0].transcript;
+                    if (event.results[i].isFinal) {
+                        final += transcriptPart + ' ';
+                    } else {
+                        interim += transcriptPart;
+                    }
+                }
+                transcriptArea.value = final + interim;
+            };
+
+            recognition.onerror = (event) => {
+                showStatus(`⚠️ Error: ${event.error}`);
+                startBtn.disabled = false;
+                stopBtn.disabled = true;
+            };
+
+            recognition.onend = () => {
+                showStatus('Stopped listening.');
+                startBtn.disabled = false;
+                stopBtn.disabled = true;
+            };
+        } else {
+            showStatus('❌ Speech Recognition not supported in this browser.');
+            startBtn.disabled = true;
+        }
+
+        startBtn.addEventListener('click', () => { if (recognition) recognition.start(); });
+        stopBtn.addEventListener('click', () => { if (recognition) recognition.stop(); });
+        saveNoteBtn.addEventListener('click', saveNote);
+        deleteCurrentBtn.addEventListener('click', () => {
+            if (transcriptArea.value.trim() && confirm('Clear current transcript?')) {
+                transcriptArea.value = '';
+                showStatus('Current text cleared.');
+            }
+        });
+
+        // Initial load
+        window.addEventListener('load', () => {
+            loadNotes();
+        });
+    </script>
+</body>
+</html>
