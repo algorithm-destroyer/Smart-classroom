@@ -1,0 +1,1097 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teacher Portal - Attendance Management</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* General Styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+
+        :root {
+            --primary-blue: #0A1B4F;
+            --secondary-blue: #1C3373;
+            --accent-green: #2ecc71;
+            --text-dark: #333;
+            --text-light: #f4f7fa;
+            --bg-light: #f8faff;
+            --white: #ffffff;
+            --grey-text: #6e7a8e;
+            --shadow-light: rgba(0, 0, 0, 0.08);
+            --shadow-medium: rgba(0, 0, 0, 0.15);
+            --transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+
+        body {
+            background: linear-gradient(135deg, #e0f2f7, #c7e8f0);
+            min-height: 100vh;
+            color: var(--text-dark);
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* Abstract Shapes */
+        body::before, body::after {
+            content: '';
+            position: absolute;
+            background-repeat: no-repeat;
+            opacity: 0.1;
+            z-index: -1;
+        }
+        body::before {
+            width: 300px;
+            height: 300px;
+            top: -50px;
+            left: -50px;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'%3E%3Cdefs%3E%3ClinearGradient id='a' x1='0%' y1='0%' x2='100%' y2='100%'%3E%3Cstop offset='0%' stop-color='%231C3373'/%3E%3Cstop offset='100%' stop-color='%230A1B4F'/%3E%3C/linearGradient%3E%3C/defs%3E%3Ccircle cx='100' cy='100' r='90' fill='url(%23a)'/%3E%3C/svg%3E");
+            transform: rotate(30deg);
+            animation: moveShape1 10s infinite alternate;
+        }
+        body::after {
+            width: 250px;
+            height: 250px;
+            bottom: -70px;
+            right: -70px;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'%3E%3Cdefs%3E%3ClinearGradient id='a' x1='0%' y1='0%' x2='100%' y2='100%'%3E%3Cstop offset='0%' stop-color='%232ecc71'/%3E%3Cstop offset='100%' stop-color='%231C3373'/%3E%3C/linearGradient%3E%3C/defs%3E%3Cpolygon points='100,0 200,75 160,200 40,200 0,75' fill='url(%23a)'/%3E%3C/svg%3E");
+            transform: rotate(-45deg);
+            animation: moveShape2 12s infinite alternate-reverse;
+        }
+        @keyframes moveShape1 {
+            from { transform: translate(-50px, -50px) rotate(30deg); }
+            to { transform: translate(50px, 50px) rotate(60deg); }
+        }
+        @keyframes moveShape2 {
+            from { transform: translate(70px, 70px) rotate(-45deg); }
+            to { transform: translate(-70px, -70px) rotate(-15deg); }
+        }
+
+        /* Progress Bar */
+        .progress-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 5px;
+            background-color: var(--accent-green);
+            box-shadow: 0 0 10px var(--accent-green);
+            z-index: 1001;
+            width: 0;
+            transition: width 0.2s linear;
+        }
+
+        /* Back to Top Button */
+        .back-to-top {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 55px;
+            height: 55px;
+            background-color: var(--secondary-blue);
+            color: var(--white);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            opacity: 0;
+            visibility: hidden;
+            transition: var(--transition);
+            box-shadow: 0 5px 15px var(--shadow-medium);
+            z-index: 1000;
+        }
+        .back-to-top:hover {
+            background-color: var(--accent-green);
+            transform: translateY(-8px) scale(1.05);
+            box-shadow: 0 8px 20px var(--accent-green);
+        }
+        .back-to-top.visible {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* Navigation */
+        nav {
+            background-color: var(--primary-blue);
+            box-shadow: 0 5px 15px var(--shadow-medium);
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1002;
+            transition: var(--transition);
+        }
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .logo {
+            display: flex;
+            align-items: center;
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--white);
+            text-decoration: none;
+            transition: var(--transition);
+        }
+        .logo:hover {
+            transform: scale(1.05);
+        }
+        .logo i {
+            margin-right: 0.5rem;
+            font-size: 2.2rem;
+            animation: float 3s infinite ease-in-out;
+            color: var(--accent-green);
+        }
+        @keyframes float {
+            0% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+            100% { transform: translateY(0); }
+        }
+        .hamburger {
+            display: flex;
+            flex-direction: column;
+            cursor: pointer;
+            padding: 5px;
+            z-index: 1004;
+        }
+        .hamburger span {
+            width: 25px;
+            height: 3px;
+            background-color: var(--white);
+            margin: 3px 0;
+            transition: var(--transition);
+        }
+        .hamburger.active span:nth-child(1) {
+            transform: rotate(-45deg) translate(-5px, 6px);
+        }
+        .hamburger.active span:nth-child(2) {
+            opacity: 0;
+        }
+        .hamburger.active span:nth-child(3) {
+            transform: rotate(45deg) translate(-5px, -6px);
+        }
+
+        /* Sidebar Menu */
+        .sidebar {
+            position: fixed;
+            top: 70px;
+            right: -300px;
+            width: 300px;
+            height: calc(100vh - 70px);
+            background-color: var(--secondary-blue);
+            transition: var(--transition);
+            z-index: 1003;
+            overflow-y: auto;
+            overflow-x: hidden;
+            box-shadow: -2px 0 10px var(--shadow-medium);
+        }
+        .sidebar.active {
+            right: 0;
+            z-index: 1003;
+        }
+        .sidebar-menu {
+            padding: 1rem 1.5rem;
+        }
+        .sidebar-item {
+            padding: 1rem 1.5rem;
+            color: var(--white);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            text-decoration: none;
+            position: relative;
+            overflow: hidden;
+            z-index: 1;
+        }
+        .sidebar-item::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 0;
+            height: 100%;
+            background-color: var(--accent-green);
+            transition: width 0.3s ease;
+            z-index: -1;
+        }
+        .sidebar-item:hover::before {
+            width: 100%;
+        }
+        .sidebar-item.active {
+            background-color: var(--accent-green);
+            color: var(--white);
+        }
+        .sidebar-item i {
+            transition: var(--transition);
+            color: var(--accent-green);
+        }
+
+        /* Main Content */
+        main {
+            transition: margin-right .5s;
+            padding: 3rem 2rem;
+            max-width: 1200px;
+            margin-left: auto;
+            margin-right: auto;
+            margin-top: 70px;
+        }
+        .container {
+            background: var(--white);
+            border-radius: 20px;
+            padding: 2.5rem;
+            box-shadow: 0 10px 30px var(--shadow-light);
+            opacity: 0;
+            transform: translateY(50px);
+            transition: opacity 1s cubic-bezier(0.25, 0.8, 0.25, 1), transform 1s cubic-bezier(0.25, 0.8, 0.25, 1);
+            display: grid;
+            gap: 2rem;
+        }
+        .container.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        h1 {
+            color: var(--primary-blue);
+            font-size: 3rem;
+            text-align: center;
+            font-weight: 700;
+            position: relative;
+            margin-bottom: 1rem;
+        }
+        h1::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--secondary-blue), var(--accent-green));
+            animation: expandWidth 1.8s cubic-bezier(0.25, 0.8, 0.25, 1) forwards;
+            border-radius: 2px;
+        }
+        @keyframes expandWidth {
+            from { width: 0; }
+            to { width: 100%; }
+        }
+        p {
+            color: var(--grey-text);
+            font-size: 1.1rem;
+            line-height: 1.8;
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+
+        /* Tabs */
+        .tabs {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        .tab {
+            padding: 1rem 2rem;
+            background: var(--bg-light);
+            border-radius: 10px 10px 0 0;
+            cursor: pointer;
+            transition: var(--transition);
+            font-weight: 500;
+        }
+        .tab.active {
+            background: var(--primary-blue);
+            color: var(--white);
+        }
+
+        /* Tab Content */
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Attendance Session Control */
+        .session-control {
+            background: var(--bg-light);
+            padding: 1.5rem;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0 5px 15px var(--shadow-light);
+        }
+        .session-status {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+        .status-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+        .status-active { background: #4CAF50; box-shadow: 0 0 6px rgba(76, 175, 80, 0.6); }
+        .status-inactive { background: #f44336; }
+        .session-timer { font-size: 1rem; color: var(--grey-text); margin-top: 0.5rem; }
+        .session-controls { display: flex; justify-content: center; gap: 1rem; margin-top: 1rem; }
+        .session-btn { padding: 0.75rem 1.5rem; border: none; border-radius: 8px; cursor: pointer; font-weight: 500; }
+        .start-btn { background: #4CAF50; color: var(--white); }
+        .start-btn:hover { background: #45a049; }
+        .stop-btn { background: #f44336; color: var(--white); }
+        .stop-btn:hover { background: #d32f2f; }
+        .session-info { font-size: 0.9rem; color: var(--grey-text); margin-top: 0.5rem; }
+
+        /* Stats */
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+            margin: 2rem 0;
+        }
+        .stat-box {
+            background: var(--bg-light);
+            padding: 1rem;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 2px 10px var(--shadow-light);
+        }
+        .stat-present { background: rgba(76, 175, 80, 0.2); }
+        .stat-absent { background: rgba(244, 67, 54, 0.2); }
+        .stat-total { background: rgba(33, 150, 243, 0.2); }
+        .stat-date { background: rgba(156, 39, 176, 0.2); }
+        .stat-number { font-size: 1.5rem; font-weight: 600; }
+        .stat-label { color: var(--grey-text); margin-top: 0.5rem; }
+
+        /* Attendance Table */
+        .attendance-container {
+            overflow-x: auto;
+            margin-bottom: 1rem;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            padding: 0.75rem 1rem;
+            text-align: left;
+            border-bottom: 1px solid var(--bg-light);
+        }
+        th {
+            background: var(--primary-blue);
+            color: var(--white);
+            position: sticky;
+            top: 0;
+        }
+        tr:nth-child(even) { background: #f9f9f9; }
+        .status-present { color: #4CAF50; font-weight: 500; }
+        .status-absent { color: #f44336; font-weight: 500; }
+        .status-select { padding: 0.25rem; border-radius: 5px; }
+        .save-btn { padding: 0.25rem 0.75rem; background: var(--accent-green); color: var(--white); border: none; border-radius: 5px; cursor: pointer; }
+        .save-btn:hover { background: #27ae60; }
+
+        /* Date Filter */
+        .date-filter {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .date-filter label { font-weight: 500; }
+        .date-filter input, .date-filter select {
+            padding: 0.5rem;
+            border: 1px solid var(--bg-light);
+            border-radius: 5px;
+        }
+        .filter-btn {
+            padding: 0.5rem 1rem;
+            background: var(--primary-blue);
+            color: var(--white);
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .filter-btn:hover { background: var(--secondary-blue); }
+
+        /* Actions */
+        .actions {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-top: 1rem;
+            flex-wrap: wrap;
+        }
+        .action-btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+        }
+        .export-btn { background: #4CAF50; color: var(--white); }
+        .export-btn:hover { background: #45a049; }
+        .refresh-btn { background: #2196F3; color: var(--white); }
+        .refresh-btn:hover { background: #0b7dda; }
+        .clear-btn { background: #f44336; color: var(--white); }
+        .clear-btn:hover { background: #d32f2f; }
+
+        /* Student Details */
+        .student-details {
+            background: var(--bg-light);
+            padding: 1.5rem;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px var(--shadow-light);
+        }
+        .student-details h3 { color: var(--primary-blue); margin-bottom: 1rem; }
+        .student-info { display: flex; gap: 1rem; margin-bottom: 1rem; }
+        .student-data { flex-grow: 1; }
+        .student-name { font-size: 1.25rem; font-weight: 600; }
+        .student-id { color: var(--grey-text); }
+        .student-stats { margin-bottom: 1rem; }
+        .attendance-history h4 { color: var(--primary-blue); margin-bottom: 0.5rem; }
+        .history-item { display: flex; justify-content: space-between; padding: 0.5rem 0; border-bottom: 1px solid var(--bg-light); }
+        .history-date { font-weight: 500; }
+        .history-status { font-weight: 500; }
+        .history-status.present { color: #4CAF50; }
+        .history-status.absent { color: #f44336; }
+
+        /* No Data */
+        .no-data { text-align: center; padding: 2rem; color: var(--grey-text); }
+        .no-data-icon { font-size: 3rem; margin-bottom: 1rem; color: var(--bg-light); }
+    </style>
+</head>
+<body>
+    <!-- Progress Bar -->
+    <div class="progress-bar" id="progressBar"></div>
+    <!-- Back to Top Button -->
+    <div class="back-to-top" id="backToTop">
+        <i class="fas fa-arrow-up"></i>
+    </div>
+    <!-- Navigation -->
+    <nav>
+        <div class="nav-container">
+            <a href="teacher_home.html" class="logo">
+                <i class="fas fa-graduation-cap"></i>
+                Smart Classroom - Teacher Portal
+            </a>
+            <div class="hamburger" id="hamburger">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+    </nav>
+    <!-- Sidebar Menu -->
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-menu">
+            <a href="teacher_home.html" class="sidebar-item">
+                <span>Home</span>
+                <i class="fas fa-home"></i>
+            </a>
+            <a href="teacher_assignment.html" class="sidebar-item">
+                <span>Post an Assignment</span>
+                <i class="fas fa-calendar-alt"></i>
+            </a>
+            <a href="teacher_notice.html" class="sidebar-item">
+                <span>Post a Notice</span>
+                <i class="fas fa-bell"></i>
+            </a>
+            <a href="teacher_recorded_class.html" class="sidebar-item">
+                <span>Recorded Classes</span>
+                <i class="fas fa-video"></i>
+            </a>
+            <a href="teacher_query.html" class="sidebar-item">
+                <span>Send a Query</span>
+                <i class="fas fa-question-circle"></i>
+            </a>
+            <a href="fa.html" class="sidebar-item">
+                <span>Faculty Advisor</span>
+                <i class="fas fa-user-graduate"></i>
+            </a>
+            <a href="teacher_study.html" class="sidebar-item">
+                <span>Upload Study Material</span>
+                <i class="fas fa-book"></i>
+            </a>
+            <a href="teacher_analytics.html" class="sidebar-item">
+                <span>Students Analytics Dashboard</span>
+                <i class="fas fa-chart-bar"></i>
+            </a>
+            <a href="teacher_attendance.html" class="sidebar-item active">
+                <span>Attendance Management</span>
+                <i class="fas fa-calendar-check"></i>
+            </a>
+            <a href="teacher_profile.html" class="sidebar-item">
+                <span>Teacher Profile</span>
+                <i class="fas fa-user"></i>
+            </a>
+            <a href="teacher_notes.html" class="sidebar-item">
+                <span>Recorded Notes</span>
+                <i class="fas fa-sticky-note"></i>
+            </a>
+            <a href="teacher_settings.html" class="sidebar-item">
+                <span>Settings</span>
+                <i class="fas fa-cog"></i>
+            </a>
+        </div>
+    </div>
+    <!-- Main Content -->
+    <main>
+        <div class="container visible">
+            <h1>Teacher Portal - Attendance Management</h1>
+            <p>View and manage student attendance data collected from the student portal</p>
+
+            <!-- Tabs -->
+            <div class="tabs">
+                <div class="tab active" onclick="openTab(event, 'overview-tab')">Overview</div>
+                <div class="tab" onclick="openTab(event, 'attendance-tab')">Attendance Records</div>
+                <div class="tab" onclick="openTab(event, 'students-tab')">Student Details</div>
+            </div>
+
+            <!-- Overview Tab -->
+            <div id="overview-tab" class="tab-content active">
+                <div class="session-control">
+                    <div class="session-status">
+                        <span>Attendance Session:</span>
+                        <span id="session-status-text">Inactive</span>
+                        <span id="session-indicator" class="status-indicator status-inactive"></span>
+                    </div>
+                    <div id="session-timer" class="session-timer"></div>
+                    <div class="session-controls">
+                        <button id="start-session" class="session-btn start-btn">Start Attendance Session</button>
+                        <button id="stop-session" class="session-btn stop-btn" disabled>Stop Attendance Session</button>
+                    </div>
+                    <div class="session-info">
+                        When the attendance session is active, students can mark their attendance from the student portal.
+                    </div>
+                </div>
+                <div class="stats">
+                    <div class="stat-box stat-total">
+                        <div class="stat-number" id="total-students">0</div>
+                        <div class="stat-label">Total Students</div>
+                    </div>
+                    <div class="stat-box stat-date">
+                        <div class="stat-number" id="total-days">0</div>
+                        <div class="stat-label">Days Recorded</div>
+                    </div>
+                    <div class="stat-box stat-present">
+                        <div class="stat-number" id="total-present">0</div>
+                        <div class="stat-label">Total Present</div>
+                    </div>
+                    <div class="stat-box stat-absent">
+                        <div class="stat-number" id="total-absent">0</div>
+                        <div class="stat-label">Total Absent</div>
+                    </div>
+                </div>
+                <div class="actions">
+                    <button class="action-btn refresh-btn" onclick="refreshData()">Refresh Data</button>
+                    <button class="action-btn export-btn" onclick="exportAllData()">Export All Data</button>
+                    <button class="action-btn clear-btn" onclick="clearAllData()">Clear All Data</button>
+                </div>
+                <div class="attendance-container">
+                    <h3>Recent Attendance</h3>
+                    <table id="recent-table">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Student ID</th>
+                                <th>Name</th>
+                                <th>Hour</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Recent attendance data will be populated here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Attendance Records Tab -->
+            <div id="attendance-tab" class="tab-content">
+                <div class="date-filter">
+                    <label for="from-date">From:</label>
+                    <input type="date" id="from-date">
+                    <label for="to-date">To:</label>
+                    <input type="date" id="to-date">
+                    <button class="filter-btn" onclick="filterAttendance()">Filter</button>
+                    <button class="filter-btn" onclick="resetFilter()">Reset</button>
+                </div>
+                <div class="attendance-container">
+                    <table id="attendance-table">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Student ID</th>
+                                <th>Name</th>
+                                <th>Hour</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Attendance data will be populated here -->
+                        </tbody>
+                    </table>
+                </div>
+                <div class="actions">
+                    <button class="action-btn export-btn" onclick="exportFilteredData()">Export Filtered Data</button>
+                </div>
+            </div>
+
+            <!-- Student Details Tab -->
+            <div id="students-tab" class="tab-content">
+                <div class="date-filter">
+                    <label for="student-select">Select Student:</label>
+                    <select id="student-select">
+                        <option value="">-- Select Student --</option>
+                    </select>
+                    <button class="filter-btn" onclick="loadStudentDetails()">View Details</button>
+                </div>
+                <div id="student-details-container">
+                    <div class="no-data">
+                        <div class="no-data-icon">👤</div>
+                        <p>Select a student to view their attendance details</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+    <script>
+        // Hardcoded student and attendance data
+        const students = [
+            { regNo: '289', name: 'Sanjay R' },
+            { regNo: '288', name: 'Nishanth V' },
+            { regNo: '290', name: 'Santhosh M' },
+            { regNo: '313', name: 'Harish V' },
+            { regNo: '318', name: 'Akshayashree S' },
+            { regNo: '279', name: 'Shamitha S' }
+        ];
+        const attendanceRecords = students.map(student => ({
+            date: '2025-09-28',
+            student_id: student.regNo,
+            name: student.name,
+            hour: '1st Hour',
+            status: 'Absent',
+            timestamp: new Date().toISOString()
+        }));
+
+        // Content Animation
+        window.addEventListener('load', function() {
+            document.querySelectorAll('.container').forEach(section => {
+                section.classList.add('visible');
+            });
+        });
+
+        // Progress Bar
+        window.addEventListener('scroll', function() {
+            const scrollPosition = window.scrollY;
+            const documentHeight = document.documentElement.scrollHeight - window.innerHeight;
+            const scrollPercentage = documentHeight > 0 ? (scrollPosition / documentHeight) * 100 : 0;
+            document.getElementById('progressBar').style.width = scrollPercentage + '%';
+        });
+
+        // Back to Top Button
+        const backToTopButton = document.getElementById('backToTop');
+        window.addEventListener('scroll', function() {
+            if (window.scrollY > 400) {
+                backToTopButton.classList.add('visible');
+            } else {
+                backToTopButton.classList.remove('visible');
+            }
+        });
+        backToTopButton.addEventListener('click', function() {
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        });
+
+        // Hamburger Menu Toggle
+        const hamburger = document.getElementById('hamburger');
+        const sidebar = document.getElementById('sidebar');
+        hamburger.addEventListener('click', function(e) {
+            e.stopPropagation();
+            hamburger.classList.toggle('active');
+            sidebar.classList.toggle('active');
+        });
+
+        // Close Sidebar on Outside Click
+        document.addEventListener('click', (e) => {
+            if (!sidebar.contains(e.target) && !hamburger.contains(e.target)) {
+                sidebar.classList.remove('active');
+                hamburger.classList.remove('active');
+            }
+        });
+
+        // Prevent Default on Active Link
+        document.querySelectorAll('.sidebar-item').forEach(item => {
+            item.addEventListener('click', function(e) {
+                if (this.classList.contains('active')) {
+                    e.preventDefault();
+                    sidebar.classList.remove('active');
+                    hamburger.classList.remove('active');
+                } else {
+                    sidebar.classList.remove('active');
+                    hamburger.classList.remove('active');
+                }
+            });
+        });
+
+        let sessionTimer = null;
+        let sessionStartTime = null;
+        let isSessionActive = false;
+
+        function openTab(evt, tabName) {
+            const tabContents = document.getElementsByClassName("tab-content");
+            for (let i = 0; i < tabContents.length; i++) {
+                tabContents[i].classList.remove("active");
+            }
+            const tabs = document.getElementsByClassName("tab");
+            for (let i = 0; i < tabs.length; i++) {
+                tabs[i].classList.remove("active");
+            }
+            document.getElementById(tabName).classList.add("active");
+            evt.currentTarget.classList.add("active");
+            if (tabName === 'overview-tab') {
+                loadOverviewData();
+                checkSessionStatus();
+            } else if (tabName === 'attendance-tab') {
+                loadAttendanceData();
+            } else if (tabName === 'students-tab') {
+                loadStudentSelect();
+            }
+        }
+
+        function checkSessionStatus() {
+            // Simulate session status (default inactive)
+            if (isSessionActive) {
+                document.getElementById('session-status-text').textContent = 'Active';
+                document.getElementById('session-indicator').classList.remove('status-inactive');
+                document.getElementById('session-indicator').classList.add('status-active');
+                document.getElementById('start-session').disabled = true;
+                document.getElementById('stop-session').disabled = false;
+                if (!sessionTimer) {
+                    sessionStartTime = new Date();
+                    updateSessionTimer();
+                    sessionTimer = setInterval(updateSessionTimer, 1000);
+                }
+            } else {
+                document.getElementById('session-status-text').textContent = 'Inactive';
+                document.getElementById('session-indicator').classList.remove('status-active');
+                document.getElementById('session-indicator').classList.add('status-inactive');
+                document.getElementById('start-session').disabled = false;
+                document.getElementById('stop-session').disabled = true;
+                if (sessionTimer) {
+                    clearInterval(sessionTimer);
+                    sessionTimer = null;
+                    document.getElementById('session-timer').textContent = '';
+                }
+            }
+        }
+
+        function updateSessionTimer() {
+            if (!sessionStartTime) return;
+            const now = new Date();
+            const elapsed = Math.floor((now - sessionStartTime) / 1000);
+            const hours = Math.floor(elapsed / 3600);
+            const minutes = Math.floor((elapsed % 3600) / 60);
+            const seconds = elapsed % 60;
+            const formattedTime = (hours > 0 ? hours + 'h ' : '') + (minutes > 0 || hours > 0 ? minutes + 'm ' : '') + seconds + 's';
+            document.getElementById('session-timer').textContent = 'Session duration: ' + formattedTime;
+        }
+
+        function startAttendanceSession() {
+            isSessionActive = true;
+            checkSessionStatus();
+            console.log('Attendance session started.');
+        }
+
+        function stopAttendanceSession() {
+            isSessionActive = false;
+            checkSessionStatus();
+            console.log('Attendance session stopped.');
+        }
+
+        function loadOverviewData() {
+            const uniqueStudents = students.length;
+            const uniqueDays = new Set(attendanceRecords.map(r => r.date)).size;
+            const totalPresent = attendanceRecords.filter(r => r.status === 'Present').length;
+            const totalAbsent = attendanceRecords.length - totalPresent;
+            document.getElementById('total-students').textContent = uniqueStudents;
+            document.getElementById('total-days').textContent = uniqueDays;
+            document.getElementById('total-present').textContent = totalPresent;
+            document.getElementById('total-absent').textContent = totalAbsent;
+            loadRecentAttendance(attendanceRecords);
+        }
+
+        function loadRecentAttendance(records) {
+            const recentTableBody = document.querySelector('#recent-table tbody');
+            recentTableBody.innerHTML = '';
+            const recentRecords = records.slice(0, 10);
+            if (recentRecords.length === 0) {
+                recentTableBody.innerHTML = '<tr><td colspan="6" class="no-data">No attendance records found</td></tr>';
+                return;
+            }
+            recentRecords.forEach(record => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${record.date}</td>
+                    <td>${record.student_id}</td>
+                    <td>${record.name}</td>
+                    <td>${record.hour}</td>
+                    <td>
+                        <select class="status-select" data-date="${record.date}" data-id="${record.student_id}" data-hour="${record.hour}">
+                            <option value="Present" ${record.status === 'Present' ? 'selected' : ''}>Present</option>
+                            <option value="Absent" ${record.status === 'Absent' ? 'selected' : ''}>Absent</option>
+                        </select>
+                    </td>
+                    <td><button class="save-btn" onclick="saveStatus(this)">Save</button></td>
+                `;
+                recentTableBody.appendChild(row);
+            });
+        }
+
+        function loadAttendanceData() {
+            const attendanceTableBody = document.querySelector('#attendance-table tbody');
+            attendanceTableBody.innerHTML = '';
+            if (attendanceRecords.length === 0) {
+                attendanceTableBody.innerHTML = '<tr><td colspan="6" class="no-data">No attendance records found</td></tr>';
+                return;
+            }
+            attendanceRecords.forEach(record => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${record.date}</td>
+                    <td>${record.student_id}</td>
+                    <td>${record.name}</td>
+                    <td>${record.hour}</td>
+                    <td>
+                        <select class="status-select" data-date="${record.date}" data-id="${record.student_id}" data-hour="${record.hour}">
+                            <option value="Present" ${record.status === 'Present' ? 'selected' : ''}>Present</option>
+                            <option value="Absent" ${record.status === 'Absent' ? 'selected' : ''}>Absent</option>
+                        </select>
+                    </td>
+                    <td><button class="save-btn" onclick="saveStatus(this)">Save</button></td>
+                `;
+                attendanceTableBody.appendChild(row);
+            });
+        }
+
+        function saveStatus(button) {
+            const select = button.parentElement.previousElementSibling.querySelector('.status-select');
+            if (select) {
+                const newStatus = select.value;
+                const date = select.dataset.date;
+                const studentId = select.dataset.id;
+                const hour = select.dataset.hour;
+                // Update the hardcoded attendanceRecords
+                const record = attendanceRecords.find(r => r.date === date && r.student_id === studentId && r.hour === hour);
+                if (record) {
+                    record.status = newStatus;
+                    console.log(`Attendance status updated for ${studentId} on ${date} (${hour}) to ${newStatus}`);
+                    if (document.getElementById('overview-tab').classList.contains('active')) {
+                        loadOverviewData();
+                    } else if (document.getElementById('attendance-tab').classList.contains('active')) {
+                        loadAttendanceData();
+                    }
+                }
+            }
+        }
+
+        function loadStudentSelect() {
+            const studentSelect = document.getElementById('student-select');
+            while (studentSelect.options.length > 1) {
+                studentSelect.remove(1);
+            }
+            students.forEach(student => {
+                const option = document.createElement('option');
+                option.value = student.regNo;
+                option.textContent = `${student.name} (${student.regNo})`;
+                studentSelect.appendChild(option);
+            });
+        }
+
+        function loadStudentDetails() {
+            const studentId = document.getElementById('student-select').value;
+            if (!studentId) {
+                document.getElementById('student-details-container').innerHTML = `
+                    <div class="no-data">
+                        <div class="no-data-icon">👤</div>
+                        <p>Select a student to view their attendance details</p>
+                    </div>
+                `;
+                return;
+            }
+            const student = students.find(s => s.regNo === studentId);
+            if (!student) {
+                document.getElementById('student-details-container').innerHTML = `
+                    <div class="no-data">
+                        <div class="no-data-icon">❌</div>
+                        <p>Student not found</p>
+                    </div>
+                `;
+                return;
+            }
+            const attendanceHistory = attendanceRecords.filter(record => record.student_id === studentId);
+            let presentCount = 0, absentCount = 0;
+            attendanceHistory.forEach(record => {
+                if (record.status === 'Present') presentCount++;
+                else absentCount++;
+            });
+            document.getElementById('student-details-container').innerHTML = `
+                <div class="student-details">
+                    <h3>Student Details</h3>
+                    <div class="student-info">
+                        <div class="student-data">
+                            <div class="student-name">${student.name}</div>
+                            <div class="student-id">ID: ${studentId}</div>
+                            <div class="student-stats">
+                                <span class="status-present">Present: ${presentCount}</span> | 
+                                <span class="status-absent">Absent: ${absentCount}</span> | 
+                                <span>Total: ${attendanceHistory.length}</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="attendance-history">
+                        <h4>Attendance History</h4>
+                        ${attendanceHistory.length > 0 ?
+                            attendanceHistory.map(record => `
+                                <div class="history-item">
+                                    <span class="history-date">${record.date} (${record.hour})</span>
+                                    <span class="history-status ${record.status.toLowerCase()}">${record.status}</span>
+                                </div>
+                            `).join('') : '<p>No attendance records found for this student</p>'
+                        }
+                    </div>
+                </div>
+            `;
+        }
+
+        function filterAttendance() {
+            const fromDate = document.getElementById('from-date').value;
+            const toDate = document.getElementById('to-date').value;
+            const attendanceTableBody = document.querySelector('#attendance-table tbody');
+            attendanceTableBody.innerHTML = '';
+            let filteredRecords = attendanceRecords;
+            if (fromDate && toDate) {
+                filteredRecords = attendanceRecords.filter(record => 
+                    record.date >= fromDate && record.date <= toDate
+                );
+            }
+            if (filteredRecords.length === 0) {
+                attendanceTableBody.innerHTML = '<tr><td colspan="6" class="no-data">No attendance records found for the selected date range</td></tr>';
+                return;
+            }
+            filteredRecords.forEach(record => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${record.date}</td>
+                    <td>${record.student_id}</td>
+                    <td>${record.name}</td>
+                    <td>${record.hour}</td>
+                    <td>
+                        <select class="status-select" data-date="${record.date}" data-id="${record.student_id}" data-hour="${record.hour}">
+                            <option value="Present" ${record.status === 'Present' ? 'selected' : ''}>Present</option>
+                            <option value="Absent" ${record.status === 'Absent' ? 'selected' : ''}>Absent</option>
+                        </select>
+                    </td>
+                    <td><button class="save-btn" onclick="saveStatus(this)">Save</button></td>
+                `;
+                attendanceTableBody.appendChild(row);
+            });
+        }
+
+        function resetFilter() {
+            document.getElementById('from-date').value = '';
+            document.getElementById('to-date').value = '';
+            loadAttendanceData();
+        }
+
+        function exportAllData() {
+            if (attendanceRecords.length === 0) {
+                console.log('No attendance records to export');
+                return;
+            }
+            let csvContent = "data:text/csv;charset=utf-8,";
+            csvContent += "Date,Student ID,Name,Hour,Status,Timestamp\n";
+            attendanceRecords.forEach(record => {
+                csvContent += `${record.date},${record.student_id},${record.name},${record.hour},${record.status},${record.timestamp}\n`;
+            });
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", `attendance_all_${new Date().toISOString().split('T')[0]}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            console.log('All attendance data exported.');
+        }
+
+        function exportFilteredData() {
+            const fromDate = document.getElementById('from-date').value;
+            const toDate = document.getElementById('to-date').value;
+            let filteredRecords = attendanceRecords;
+            if (fromDate && toDate) {
+                filteredRecords = attendanceRecords.filter(record => 
+                    record.date >= fromDate && record.date <= toDate
+                );
+            }
+            if (filteredRecords.length === 0) {
+                console.log('No attendance records found for the selected date range');
+                return;
+            }
+            let csvContent = "data:text/csv;charset=utf-8,";
+            csvContent += "Date,Student ID,Name,Hour,Status,Timestamp\n";
+            filteredRecords.forEach(record => {
+                csvContent += `${record.date},${record.student_id},${record.name},${record.hour},${record.status},${record.timestamp}\n`;
+            });
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", `attendance_${fromDate || 'all'}_to_${toDate || 'all'}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            console.log('Filtered attendance data exported.');
+        }
+
+        function refreshData() {
+            loadOverviewData();
+            checkSessionStatus();
+            console.log('Data refreshed.');
+        }
+
+        function clearAllData() {
+            if (confirm('Are you sure you want to clear all attendance data? This action cannot be undone.')) {
+                attendanceRecords.length = 0;
+                loadOverviewData();
+                console.log('All attendance data cleared.');
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('start-session').addEventListener('click', startAttendanceSession);
+            document.getElementById('stop-session').addEventListener('click', stopAttendanceSession);
+            loadOverviewData();
+            checkSessionStatus();
+            document.querySelector('.container').classList.add('visible');
+        });
+    </script>
+</body>
+</html>

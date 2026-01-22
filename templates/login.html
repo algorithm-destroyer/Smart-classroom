@@ -1,0 +1,709 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Smart Classroom Login</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    /* General Styles */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Poppins', sans-serif;
+    }
+    
+    /* Color Palette */
+    :root {
+        --primary-blue: #0A1B4F;
+        --secondary-blue: #1C3373;
+        --accent-green: #2ecc71;
+        --text-dark: #333;
+        --text-light: #f4f7fa;
+        --bg-light: #f8faff;
+        --white: #ffffff;
+        --grey-text: #6e7a8e;
+        --shadow-light: rgba(0, 0, 0, 0.08);
+        --shadow-medium: rgba(0, 0, 0, 0.15);
+        --transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+    }
+
+    body {
+      background: linear-gradient(135deg, #e0f2f7, #c7e8f0);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      overflow-x: hidden;
+      color: var(--text-dark);
+      position: relative;
+    }
+
+    /* Abstract shapes */
+    body::before, body::after {
+        content: '';
+        position: absolute;
+        background-repeat: no-repeat;
+        opacity: 0.1;
+        z-index: -1;
+    }
+    body::before {
+        width: 300px;
+        height: 300px;
+        top: -50px;
+        left: -50px;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'%3E%3Cdefs%3E%3ClinearGradient id='a' x1='0%' y1='0%' x2='100%' y2='100%'%3E%3Cstop offset='0%' stop-color='%231C3373'/%3E%3Cstop offset='100%' stop-color='%230A1B4F'/%3E%3C/linearGradient%3E%3C/defs%3E%3Ccircle cx='100' cy='100' r='90' fill='url(%23a)'/%3E%3C/svg%3E");
+        transform: rotate(30deg);
+        animation: moveShape1 10s infinite alternate;
+    }
+    body::after {
+        width: 250px;
+        height: 250px;
+        bottom: -70px;
+        right: -70px;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'%3E%3Cdefs%3E%3ClinearGradient id='a' x1='0%' y1='0%' x2='100%' y2='100%'%3E%3Cstop offset='0%' stop-color='%232ecc71'/%3E%3Cstop offset='100%' stop-color='%231C3373'/%3E%3C/linearGradient%3E%3C/defs%3E%3Cpolygon points='100,0 200,75 160,200 40,200 0,75' fill='url(%23a)'/%3E%3C/svg%3E");
+        transform: rotate(-45deg);
+        animation: moveShape2 12s infinite alternate-reverse;
+    }
+
+    @keyframes moveShape1 {
+        from { transform: translate(-50px, -50px) rotate(30deg); }
+        to { transform: translate(50px, 50px) rotate(60deg); }
+    }
+    @keyframes moveShape2 {
+        from { transform: translate(70px, 70px) rotate(-45deg); }
+        to { transform: translate(-70px, -70px) rotate(-15deg); }
+    }
+
+    /* Loading Screen */
+    .loader-container {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: var(--primary-blue);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 9999;
+        transition: opacity 0.6s ease, visibility 0.6s ease;
+    }
+
+    .loader {
+        width: 70px;
+        height: 70px;
+        border: 6px solid rgba(255, 255, 255, 0.3);
+        border-radius: 50%;
+        border-top-color: var(--accent-green);
+        animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+
+    /* Progress Bar */
+    .progress-bar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        height: 5px;
+        background-color: var(--accent-green);
+        box-shadow: 0 0 10px var(--accent-green);
+        z-index: 1001;
+        width: 0;
+        transition: width 0.2s linear;
+    }
+
+    /* Back to Top Button */
+    .back-to-top {
+        position: fixed;
+        bottom: 30px;
+        right: 30px;
+        width: 55px;
+        height: 55px;
+        background-color: var(--secondary-blue);
+        color: var(--white);
+        border-radius: 50%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        cursor: pointer;
+        opacity: 0;
+        visibility: hidden;
+        transition: var(--transition);
+        box-shadow: 0 5px 15px var(--shadow-medium);
+        z-index: 1000;
+    }
+
+    .back-to-top:hover {
+        background-color: var(--accent-green);
+        transform: translateY(-8px) scale(1.05);
+        box-shadow: 0 8px 20px var(--accent-green);
+    }
+
+    .back-to-top.visible {
+        opacity: 1;
+        visibility: visible;
+    }
+
+    .login-container {
+      background: var(--white);
+      border-radius: 20px;
+      box-shadow: 0 10px 30px var(--shadow-light);
+      width: 100%;
+      max-width: 420px;
+      padding: 40px 30px;
+      position: relative;
+      overflow: visible;
+      opacity: 0;
+      transform: translateY(30px);
+      transition: opacity 1s cubic-bezier(0.25, 0.8, 0.25, 1), transform 1s cubic-bezier(0.25, 0.8, 0.25, 1);
+      z-index: 1;
+    }
+
+    .login-container.visible {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    .logo {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+    .logo h1 {
+      color: var(--primary-blue);
+      font-size: 3rem;
+      margin-bottom: 0.5rem;
+      font-weight: 700;
+      position: relative;
+      display: inline-block;
+      animation: fadeInDown 1.2s ease forwards;
+    }
+
+    .logo h1::after {
+        content: '';
+        position: absolute;
+        bottom: -8px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 0;
+        height: 3px;
+        background: linear-gradient(90deg, var(--secondary-blue), var(--accent-green));
+        animation: expandWidth 1.8s cubic-bezier(0.25, 0.8, 0.25, 1) forwards;
+        border-radius: 2px;
+    }
+
+    @keyframes expandWidth {
+        from { width: 0; }
+        to { width: 100%; }
+    }
+
+    .logo p {
+      color: var(--grey-text);
+      font-size: 1.1rem;
+      margin-top: 1rem;
+      animation: fadeInUp 1.2s ease 0.3s forwards;
+      opacity: 0;
+    }
+    
+    @keyframes fadeInDown {
+        from { opacity: 0; transform: translateY(-40px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes fadeInUp {
+        from { opacity: 0; transform: translateY(30px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .form-group {
+      margin-bottom: 25px;
+      position: relative;
+      animation: fadeInRight 0.8s ease forwards;
+      opacity: 0;
+      transform: translateX(-20px);
+    }
+    .form-group:nth-child(1) { animation-delay: 0.6s; }
+    .form-group:nth-child(2) { animation-delay: 0.8s; }
+    .form-group:nth-child(3) { animation-delay: 1.0s; }
+    .form-group:nth-child(4) { animation-delay: 1.2s; }
+
+    @keyframes fadeInRight {
+        from { opacity: 0; transform: translateX(-20px); }
+        to { opacity: 1; transform: translateX(0); }
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 8px;
+      color: var(--primary-blue);
+      font-weight: 600;
+      font-size: 0.95rem;
+    }
+    .form-group input {
+      width: 100%;
+      padding: 12px 15px;
+      border: 1px solid #d0d7e0;
+      border-radius: 10px;
+      font-size: 1rem;
+      transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    }
+    .form-group input:focus {
+      outline: none;
+      border-color: var(--accent-green);
+      box-shadow: 0 0 0 3px rgba(46, 204, 113, 0.2);
+    }
+
+    /* Captcha Styling */
+    .captcha-box {
+      display: flex;
+      align-items: center;
+      margin-top: 10px;
+      gap: 10px;
+    }
+    .captcha-image {
+      border: 1px solid var(--secondary-blue);
+      border-radius: 10px;
+      background: #f0f7f9;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 26px;
+      font-weight: bold;
+      letter-spacing: 4px;
+      color: var(--primary-blue);
+      width: 160px;
+      height: 55px;
+      position: relative;
+      overflow: hidden;
+      box-shadow: inset 0 2px 5px rgba(0,0,0,0.05);
+    }
+    .captcha-text span {
+        display: inline-block;
+        transform: rotate(0deg);
+        transition: transform 0.2s ease;
+    }
+    .captcha-noise {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1;
+      opacity: 0.6;
+    }
+    .captcha-refresh {
+      cursor: pointer;
+      font-size: 22px;
+      color: var(--secondary-blue);
+      font-weight: bold;
+      transition: var(--transition);
+      padding: 8px;
+      border-radius: 50%;
+      background-color: #f0f7f9;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    .captcha-refresh:hover {
+      color: var(--accent-green);
+      transform: rotate(90deg) scale(1.1);
+      box-shadow: 0 4px 10px rgba(46, 204, 113, 0.3);
+    }
+    .captcha-status {
+      font-size: 0.85rem;
+      margin-top: 8px;
+      padding-left: 5px;
+      height: 1.2em;
+    }
+
+    .remember-forgot {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 25px;
+      font-size: 0.9rem;
+      color: var(--grey-text);
+      animation: fadeInRight 0.8s ease forwards 1.2s;
+      opacity: 0;
+      transform: translateX(-20px);
+    }
+    .remember input[type="checkbox"] {
+        margin-right: 8px;
+        accent-color: var(--accent-green);
+        transform: scale(1.1);
+    }
+    .remember label {
+        color: var(--grey-text);
+        cursor: pointer;
+    }
+    .remember a, .remember-forgot a {
+      color: var(--secondary-blue);
+      text-decoration: none;
+      font-weight: 500;
+      transition: color 0.3s ease;
+    }
+    .remember-forgot a:hover {
+      color: var(--accent-green);
+      text-decoration: underline;
+    }
+
+    .login-btn {
+      width: 100%;
+      padding: 15px;
+      background-color: var(--primary-blue);
+      color: var(--white);
+      border: none;
+      border-radius: 30px;
+      font-size: 1.1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: var(--transition);
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+      position: relative;
+      overflow: hidden;
+      z-index: 1;
+      letter-spacing: 0.5px;
+      animation: fadeInUp 0.8s ease forwards 1.4s;
+      opacity: 0;
+      transform: translateY(20px);
+    }
+
+    .login-btn::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background-color: var(--accent-green);
+        transition: left 0.4s ease;
+        z-index: -1;
+    }
+
+    .login-btn:hover::before {
+        left: 0;
+    }
+    
+    .login-btn:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 8px 20px rgba(46, 204, 113, 0.4);
+    }
+
+    .divider {
+      text-align: center;
+      margin: 25px 0;
+      position: relative;
+      animation: fadeIn 0.8s ease forwards 1.6s;
+      opacity: 0;
+    }
+    .divider::before {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 0;
+      right: 0;
+      height: 1px;
+      background-color: #e0e7ee;
+      z-index: 0;
+    }
+    .divider span {
+      background-color: var(--white);
+      padding: 0 15px;
+      color: var(--grey-text);
+      font-size: 0.9rem;
+      position: relative;
+      z-index: 1;
+    }
+
+    .register-link {
+      text-align: center;
+      margin-top: 20px;
+      margin-bottom: 20px;
+      color: var(--grey-text);
+      font-size: 1rem;
+      opacity: 1;
+      animation: fadeIn 0.8s ease forwards 1.8s;
+      z-index: 2;
+      position: relative;
+    }
+    .register-link a {
+      color: var(--secondary-blue);
+      text-decoration: none;
+      font-weight: 600;
+      transition: color 0.3s ease;
+    }
+    .register-link a:hover {
+      color: var(--accent-green);
+      text-decoration: underline;
+    }
+
+    /* Server message styling */
+    #server-message {
+      margin-top: 15px;
+      padding: 10px;
+      border-radius: 4px;
+      text-align: center;
+      display: none;
+    }
+    .message-success {
+      background-color: #dff0d8;
+      color: #3c763d;
+    }
+    .message-error {
+      background-color: #f2dede;
+      color: #a94442;
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 500px) {
+        .login-container {
+            padding: 30px 20px;
+            margin: 20px;
+        }
+        .logo h1 {
+            font-size: 2.5rem;
+        }
+        .logo p {
+            font-size: 1rem;
+        }
+        .captcha-box {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 15px;
+        }
+        .captcha-refresh {
+            margin-left: 0;
+        }
+        .form-group label {
+            font-size: 0.9rem;
+        }
+        .form-group input {
+            font-size: 0.95rem;
+            padding: 10px 12px;
+        }
+        .login-btn {
+            font-size: 1rem;
+            padding: 12px;
+        }
+        .register-link {
+            font-size: 0.9rem;
+            margin-bottom: 15px;
+        }
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+  </style>
+</head>
+<body>
+  <!-- Loading Screen -->
+  <div class="loader-container" id="loader">
+      <div class="loader"></div>
+  </div>
+
+  <!-- Progress Bar -->
+  <div class="progress-bar" id="progressBar"></div>
+
+  <!-- Back to Top Button -->
+  <div class="back-to-top" id="backToTop">
+      <i class="fas fa-arrow-up"></i>
+  </div>
+  
+  <div class="login-container" id="loginContainer">
+    <div class="logo">
+      <h1>Smart Classroom</h1>
+      <p>Login to your account</p>
+    </div>
+    <form id="login-form">
+      <div class="form-group">
+        <label for="reg-number">Registration Number</label>
+        <input type="text" id="reg-number" name="reg-number" placeholder="Enter your registration number" required>
+      </div>
+      <div class="form-group">
+        <label for="password">Password</label>
+        <input type="password" id="password" name="password" placeholder="Enter your password" required>
+      </div>
+      <!-- Captcha Section -->
+      <div class="form-group">
+        <label for="captcha-input">Enter Captcha</label>
+        <div class="captcha-box">
+          <div id="captcha-container" class="captcha-image">
+            <div id="captcha-text" class="captcha-text"></div>
+            <canvas id="captcha-noise" class="captcha-noise" width="160" height="55"></canvas>
+          </div>
+          <span id="refresh-btn" class="captcha-refresh"><i class="fas fa-sync-alt"></i></span>
+        </div>
+        <input type="text" id="captcha-input" placeholder="Enter captcha here" required>
+        <div id="captcha-status" class="captcha-status"></div>
+      </div>
+      <div class="remember-forgot">
+        <div class="remember">
+          <input type="checkbox" id="remember" name="remember">
+          <label for="remember">Remember me</label>
+        </div>
+        <a href="/forgot">Forgot password?</a>
+      </div>
+      <button type="submit" class="login-btn">Login</button>
+      <div id="server-message"></div>
+    </form>
+    <div class="divider">
+      <span>OR</span>
+    </div>
+    <div class="register-link">
+      Don't have an account? <a href="/register">Register here</a>
+    </div>
+  </div>
+
+  <script>
+    // Captcha functionality
+    let captchaText = "";
+    
+    function generateCaptcha() {
+      const chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789";
+      captchaText = "";
+      for (let i = 0; i < 6; i++) {
+        captchaText += chars.charAt(Math.floor(Math.random() * chars.length));
+      }
+      
+      // Display the text
+      const textElement = document.getElementById("captcha-text");
+      textElement.textContent = "";
+      
+      // Add noise effect
+      const canvas = document.getElementById("captcha-noise");
+      const ctx = canvas.getContext("2d");
+      
+      // Clear canvas
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      
+      // Add noise lines
+      for (let i = 0; i < 5; i++) {
+        ctx.strokeStyle = `rgba(${Math.floor(Math.random() * 100)}, ${Math.floor(Math.random() * 100)}, ${Math.floor(Math.random() * 100)}, 0.3)`;
+        ctx.beginPath();
+        ctx.moveTo(Math.random() * canvas.width, Math.random() * canvas.height);
+        ctx.lineTo(Math.random() * canvas.width, Math.random() * canvas.height);
+        ctx.stroke();
+      }
+      
+      // Add noise dots
+      for (let i = 0; i < 30; i++) {
+        ctx.fillStyle = `rgba(${Math.floor(Math.random() * 100)}, ${Math.floor(Math.random() * 100)}, ${Math.floor(Math.random() * 100)}, 0.2)`;
+        ctx.beginPath();
+        ctx.arc(Math.random() * canvas.width, Math.random() * canvas.height, 1, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      
+      // Add random rotation to individual characters
+      const characters = captchaText.split('');
+      characters.forEach(char => {
+        const span = document.createElement('span');
+        span.textContent = char;
+        span.style.display = 'inline-block';
+        span.style.transform = `rotate(${(Math.random() - 0.5) * 30}deg)`;
+        textElement.appendChild(span);
+      });
+      document.getElementById("captcha-input").value = "";
+      document.getElementById("captcha-status").textContent = "";
+    }
+    
+    function validateCaptcha(event) {
+      event.preventDefault();
+      const userInput = document.getElementById("captcha-input").value.trim();
+      const status = document.getElementById("captcha-status");
+      const serverMessage = document.getElementById("server-message");
+      
+      serverMessage.style.display = 'none';
+      serverMessage.className = '';
+
+      if (userInput.toLowerCase() !== captchaText.toLowerCase()) {
+        status.textContent = "Captcha Incorrect! Try again.";
+        status.style.color = "red";
+        generateCaptcha();
+        return;
+      } else {
+        status.textContent = "Captcha Verified!";
+        status.style.color = "var(--accent-green)";
+        performLogin();
+      }
+    }
+
+    async function performLogin() {
+      const formData = {
+        regNo: document.getElementById("reg-number").value,
+        password: document.getElementById("password").value
+      };
+      const serverMessage = document.getElementById("server-message");
+
+      try {
+        const response = await fetch('/api/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(formData)
+        });
+        const result = await response.json();
+
+        serverMessage.textContent = result.message;
+        serverMessage.className = result.status === 'success' ? 'message-success' : 'message-error';
+        serverMessage.style.display = 'block';
+
+        if (result.status === 'success') {
+          setTimeout(() => {
+            window.location.href = '/home';
+          }, 2000);
+        } else {
+          generateCaptcha();
+        }
+      } catch (error) {
+        console.error('Error during login:', error);
+        serverMessage.textContent = 'An error occurred. Please try again.';
+        serverMessage.className = 'message-error';
+        serverMessage.style.display = 'block';
+        generateCaptcha();
+      }
+    }
+    
+    // Event listeners for Captcha
+    document.getElementById("refresh-btn").addEventListener("click", generateCaptcha);
+    document.getElementById("login-form").addEventListener("submit", validateCaptcha);
+    
+    // Initial captcha generation on load
+    document.addEventListener("DOMContentLoaded", function() {
+      generateCaptcha();
+      // Ensure register-link is visible after page load
+      const registerLink = document.querySelector('.register-link');
+      registerLink.style.opacity = '1';
+    });
+
+    // Loading Screen and main container visibility
+    window.addEventListener('load', function() {
+        setTimeout(function() {
+            document.getElementById('loader').style.opacity = '0';
+            document.getElementById('loader').style.visibility = 'hidden';
+            document.getElementById('loginContainer').classList.add('visible');
+        }, 1000);
+    });
+
+    // Progress Bar
+    window.addEventListener('scroll', function() {
+        const scrollPosition = window.scrollY;
+        const documentHeight = document.documentElement.scrollHeight - window.innerHeight;
+        const scrollPercentage = documentHeight > 0 ? (scrollPosition / documentHeight) * 100 : 0;
+        document.getElementById('progressBar').style.width = scrollPercentage + '%';
+    });
+
+    // Back to Top Button
+    const backToTopButton = document.getElementById('backToTop');
+    backToTopButton.addEventListener('click', function() {
+        window.scrollTo({
+            top: 0,
+            behavior: 'smooth'
+        });
+    });
+  </script>
+</body>
+</html>

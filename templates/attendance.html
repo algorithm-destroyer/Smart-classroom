@@ -1,0 +1,1639 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Classroom Attendance</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* General Styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+
+        :root {
+            --primary-blue: #0A1B4F;
+            --secondary-blue: #1C3373;
+            --accent-green: #2ecc71;
+            --text-dark: #333;
+            --text-light: #f4f7fa;
+            --bg-light: #f8faff;
+            --white: #ffffff;
+            --grey-text: #6e7a8e;
+            --shadow-light: rgba(0, 0, 0, 0.08);
+            --shadow-medium: rgba(0, 0, 0, 0.15);
+            --transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+
+        body {
+            background: linear-gradient(135deg, #e0f2f7, #c7e8f0);
+            min-height: 100vh;
+            color: var(--text-dark);
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* Abstract Shapes */
+        body::before, body::after {
+            content: '';
+            position: absolute;
+            background-repeat: no-repeat;
+            opacity: 0.1;
+            z-index: -1;
+        }
+        body::before {
+            width: 300px;
+            height: 300px;
+            top: -50px;
+            left: -50px;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'%3E%3Cdefs%3E%3ClinearGradient id='a' x1='0%' y1='0%' x2='100%' y2='100%'%3E%3Cstop offset='0%' stop-color='%231C3373'/%3E%3Cstop offset='100%' stop-color='%230A1B4F'/%3E%3C/linearGradient%3E%3C/defs%3E%3Ccircle cx='100' cy='100' r='90' fill='url(%23a)'/%3E%3C/svg%3E");
+            transform: rotate(30deg);
+            animation: moveShape1 10s infinite alternate;
+        }
+        body::after {
+            width: 250px;
+            height: 250px;
+            bottom: -70px;
+            right: -70px;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'%3E%3Cdefs%3E%3ClinearGradient id='a' x1='0%' y1='0%' x2='100%' y2='100%'%3E%3Cstop offset='0%' stop-color='%232ecc71'/%3E%3Cstop offset='100%' stop-color='%231C3373'/%3E%3C/linearGradient%3E%3C/defs%3E%3Cpolygon points='100,0 200,75 160,200 40,200 0,75' fill='url(%23a)'/%3E%3C/svg%3E");
+            transform: rotate(-45deg);
+            animation: moveShape2 12s infinite alternate-reverse;
+        }
+        @keyframes moveShape1 {
+            from { transform: translate(-50px, -50px) rotate(30deg); }
+            to { transform: translate(50px, 50px) rotate(60deg); }
+        }
+        @keyframes moveShape2 {
+            from { transform: translate(70px, 70px) rotate(-45deg); }
+            to { transform: translate(-70px, -70px) rotate(-15deg); }
+        }
+
+        /* Loading Screen */
+        .loader-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: var(--primary-blue);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            transition: opacity 0.6s ease, visibility 0.6s ease;
+        }
+        .loader {
+            width: 70px;
+            height: 70px;
+            border: 6px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: var(--accent-green);
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Progress Bar */
+        .progress-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 5px;
+            background-color: var(--accent-green);
+            box-shadow: 0 0 10px var(--accent-green);
+            z-index: 1001;
+            width: 0;
+            transition: width 0.2s linear;
+        }
+
+        /* Back to Top Button */
+        .back-to-top {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 55px;
+            height: 55px;
+            background-color: var(--secondary-blue);
+            color: var(--white);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            opacity: 0;
+            visibility: hidden;
+            transition: var(--transition);
+            box-shadow: 0 5px 15px var(--shadow-medium);
+            z-index: 1000;
+        }
+        .back-to-top:hover {
+            background-color: var(--accent-green);
+            transform: translateY(-8px) scale(1.05);
+            box-shadow: 0 8px 20px var(--accent-green);
+        }
+        .back-to-top.visible {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* Navigation */
+        nav {
+            background-color: var(--primary-blue);
+            box-shadow: 0 5px 15px var(--shadow-medium);
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+            transition: var(--transition);
+        }
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .logo {
+            display: flex;
+            align-items: center;
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--white);
+            text-decoration: none;
+            transition: var(--transition);
+        }
+        .logo:hover {
+            transform: scale(1.05);
+        }
+        .logo i {
+            margin-right: 0.5rem;
+            font-size: 2.2rem;
+            animation: float 3s infinite ease-in-out;
+            color: var(--accent-green);
+        }
+        @keyframes float {
+            0% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+            100% { transform: translateY(0); }
+        }
+        .hamburger {
+            display: flex;
+            flex-direction: column;
+            cursor: pointer;
+            padding: 5px;
+            z-index: 1001;
+        }
+        .hamburger span {
+            width: 25px;
+            height: 3px;
+            background-color: var(--white);
+            margin: 3px 0;
+            transition: var(--transition);
+        }
+        .hamburger.active span:nth-child(1) {
+            transform: rotate(-45deg) translate(-5px, 6px);
+        }
+        .hamburger.active span:nth-child(2) {
+            opacity: 0;
+        }
+        .hamburger.active span:nth-child(3) {
+            transform: rotate(45deg) translate(-5px, -6px);
+        }
+
+        /* Sidebar Menu */
+        .sidebar {
+            position: fixed;
+            top: 70px;
+            right: -300px;
+            width: 300px;
+            height: calc(100vh - 70px);
+            background-color: var(--secondary-blue);
+            transition: var(--transition);
+            z-index: 999;
+            overflow-y: auto;
+            box-shadow: -2px 0 10px var(--shadow-medium);
+        }
+        .sidebar.active {
+            right: 0;
+        }
+        .sidebar-menu {
+            padding: 1.5rem 0;
+        }
+        .sidebar-item {
+            padding: 1rem 1.5rem;
+            color: var(--white);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            text-decoration: none;
+            position: relative;
+            overflow: hidden;
+        }
+        .sidebar-item::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 0;
+            height: 100%;
+            background-color: var(--accent-green);
+            transition: width 0.3s ease;
+            z-index: -1;
+        }
+        .sidebar-item:hover::before {
+            width: 100%;
+        }
+        .sidebar-item.active {
+            background-color: var(--accent-green);
+        }
+        .sidebar-item i {
+            transition: var(--transition);
+            color: var(--accent-green);
+        }
+
+        /* Main Content */
+        main {
+            margin-top: 70px;
+            padding: 3rem 2rem;
+            max-width: 1200px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .container {
+            background: var(--white);
+            border-radius: 20px;
+            padding: 2.5rem;
+            box-shadow: 0 10px 30px var(--shadow-light);
+            opacity: 0;
+            transform: translateY(50px);
+            transition: opacity 1s cubic-bezier(0.25, 0.8, 0.25, 1), transform 1s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+        .container.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        h1 {
+            color: var(--primary-blue);
+            font-size: 3rem;
+            text-align: center;
+            font-weight: 700;
+            position: relative;
+            margin-bottom: 1rem;
+        }
+        h1::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--secondary-blue), var(--accent-green));
+            animation: expandWidth 1.8s cubic-bezier(0.25, 0.8, 0.25, 1) forwards;
+            border-radius: 2px;
+        }
+        @keyframes expandWidth {
+            from { width: 0; }
+            to { width: 100%; }
+        }
+        h2 {
+            color: var(--primary-blue);
+            font-size: 2rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+        }
+        p {
+            color: var(--grey-text);
+            font-size: 1.1rem;
+            line-height: 1.8;
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+
+        /* Session Status Banner */
+        .session-status-banner {
+            padding: 1rem;
+            border-radius: 10px;
+            margin-bottom: 2rem;
+            text-align: center;
+            font-weight: 600;
+            font-size: 1.1rem;
+            transition: var(--transition);
+            position: relative;
+            overflow: hidden;
+        }
+        .session-status-banner::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary-blue), var(--accent-green));
+            transform: translateX(-100%);
+            transition: transform 0.6s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+        .session-status-banner.visible::before {
+            transform: translateX(0);
+        }
+        .session-active {
+            background: rgba(76, 175, 80, 0.1);
+            color: #2E7D32;
+            border: 1px solid rgba(76, 175, 80, 0.3);
+        }
+        .session-inactive {
+            background: rgba(244, 67, 54, 0.1);
+            color: #C62828;
+            border: 1px solid rgba(244, 67, 54, 0.3);
+        }
+
+        /* Tabs */
+        .tabs {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 2rem;
+            gap: 1rem;
+        }
+        .tab {
+            padding: 0.8rem 1.5rem;
+            cursor: pointer;
+            background: var(--bg-light);
+            border-radius: 10px;
+            font-weight: 600;
+            color: var(--text-dark);
+            transition: var(--transition);
+            position: relative;
+            overflow: hidden;
+        }
+        .tab::before {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 0;
+            height: 3px;
+            background: var(--accent-green);
+            transition: width 0.3s ease;
+        }
+        .tab:hover::before {
+            width: 100%;
+        }
+        .tab.active {
+            background: var(--primary-blue);
+            color: var(--white);
+        }
+        .tab.active::before {
+            width: 100%;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Face Recognition Section */
+        .face-recognition {
+            background: var(--bg-light);
+            border-radius: 15px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 5px 20px var(--shadow-light);
+            transition: var(--transition);
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        .face-recognition.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .camera-container {
+            position: relative;
+            width: 100%;
+            max-width: 500px;
+            margin: 0 auto 1.5rem;
+        }
+        #video, #registration-video {
+            width: 100%;
+            border-radius: 10px;
+            background: #000;
+            box-shadow: 0 5px 15px var(--shadow-light);
+        }
+        .camera-controls {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        .recognition-btn {
+            padding: 0.8rem 1.5rem;
+            border: none;
+            border-radius: 30px;
+            cursor: pointer;
+            font-weight: 600;
+            color: var(--white);
+            transition: var(--transition);
+            position: relative;
+            overflow: hidden;
+            z-index: 1;
+        }
+        .recognition-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            transition: left 0.4s ease;
+            z-index: -1;
+        }
+        .recognition-btn:hover::before {
+            left: 0;
+        }
+        .recognition-btn:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px var(--shadow-medium);
+        }
+        .start-btn {
+            background: var(--accent-green);
+        }
+        .start-btn::before {
+            background: var(--primary-blue);
+        }
+        .capture-btn {
+            background: var(--secondary-blue);
+        }
+        .capture-btn::before {
+            background: var(--accent-green);
+        }
+        .stop-btn {
+            background: #f44336;
+        }
+        .stop-btn::before {
+            background: var(--primary-blue);
+        }
+        .recognition-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        .recognition-btn:disabled::before {
+            display: none;
+        }
+        .recognition-status {
+            margin-top: 1rem;
+            padding: 0.8rem;
+            border-radius: 10px;
+            text-align: center;
+            font-weight: 600;
+            display: none;
+            transition: var(--transition);
+        }
+        .status-success {
+            background: rgba(76, 175, 80, 0.1);
+            color: #2E7D32;
+        }
+        .status-error {
+            background: rgba(244, 67, 54, 0.1);
+            color: #C62828;
+        }
+        .status-info {
+            background: rgba(33, 150, 243, 0.1);
+            color: #1565C0;
+        }
+
+        /* Registration Section */
+        .registration-form {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        .form-group label {
+            font-weight: 600;
+            color: var(--primary-blue);
+        }
+        .form-group select, .form-group input {
+            padding: 0.8rem;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: var(--transition);
+        }
+        .form-group select:focus, .form-group input:focus {
+            border-color: var(--accent-green);
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(46, 204, 113, 0.2);
+        }
+        .register-btn {
+            padding: 0.8rem 1.5rem;
+            background: var(--primary-blue);
+            color: var(--white);
+            border: none;
+            border-radius: 30px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: var(--transition);
+            position: relative;
+            overflow: hidden;
+            z-index: 1;
+            align-self: flex-start;
+        }
+        .register-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: var(--accent-green);
+            transition: left 0.4s ease;
+            z-index: -1;
+        }
+        .register-btn:hover::before {
+            left: 0;
+        }
+        .register-btn:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(46, 204, 113, 0.4);
+        }
+        .register-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        .register-btn:disabled::before {
+            display: none;
+        }
+        .registered-students {
+            margin-top: 2rem;
+        }
+        .student-card {
+            display: flex;
+            align-items: center;
+            padding: 1rem;
+            border-radius: 10px;
+            margin-bottom: 1rem;
+            background: var(--bg-light);
+            box-shadow: 0 5px 15px var(--shadow-light);
+            transition: var(--transition);
+        }
+        .student-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px var(--shadow-medium);
+        }
+        .student-avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            margin-right: 1rem;
+            object-fit: cover;
+            border: 2px solid var(--accent-green);
+            transition: var(--transition);
+        }
+        .student-card:hover .student-avatar {
+            transform: scale(1.05);
+        }
+        .student-info {
+            flex-grow: 1;
+        }
+        .student-name {
+            font-weight: 600;
+            color: var(--primary-blue);
+            margin-bottom: 0.5rem;
+        }
+        .student-id {
+            color: var(--grey-text);
+            font-size: 0.9rem;
+        }
+        .delete-btn {
+            background: #f44336;
+            color: var(--white);
+            border: none;
+            border-radius: 10px;
+            padding: 0.5rem 1rem;
+            cursor: pointer;
+            transition: var(--transition);
+            position: relative;
+            overflow: hidden;
+            z-index: 1;
+        }
+        .delete-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: var(--primary-blue);
+            transition: left 0.4s ease;
+            z-index: -1;
+        }
+        .delete-btn:hover::before {
+            left: 0;
+        }
+        .delete-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(244, 67, 54, 0.4);
+        }
+        .clear-all-btn {
+            background: #ff9800;
+            color: var(--white);
+            border: none;
+            border-radius: 30px;
+            padding: 0.8rem 1.5rem;
+            cursor: pointer;
+            font-weight: 600;
+            transition: var(--transition);
+            position: relative;
+            overflow: hidden;
+            z-index: 1;
+        }
+        .clear-all-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: var(--primary-blue);
+            transition: left 0.4s ease;
+            z-index: -1;
+        }
+        .clear-all-btn:hover::before {
+            left: 0;
+        }
+        .clear-all-btn:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(255, 152, 0, 0.4);
+        }
+
+        /* Attendance Table */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 2rem;
+            background: var(--bg-light);
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 5px 20px var(--shadow-light);
+        }
+        th, td {
+            padding: 1rem;
+            text-align: left;
+        }
+        th {
+            background: var(--primary-blue);
+            color: var(--white);
+            font-weight: 600;
+        }
+        tr {
+            transition: var(--transition);
+        }
+        tr:hover {
+            background: rgba(46, 204, 113, 0.1);
+            transform: translateY(-2px);
+        }
+        .status-present {
+            color: #2E7D32;
+            font-weight: 600;
+        }
+        .status-absent {
+            color: #C62828;
+            font-weight: 600;
+        }
+
+        /* Stats Section */
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+        .stat-box {
+            text-align: center;
+            padding: 1.5rem;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px var(--shadow-light);
+            transition: var(--transition);
+            position: relative;
+            overflow: hidden;
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        .stat-box.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .stat-box:nth-child(1) { transition-delay: 0.2s; }
+        .stat-box:nth-child(2) { transition-delay: 0.4s; }
+        .stat-box::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary-blue), var(--accent-green));
+            transform: translateX(-100%);
+            transition: transform 0.6s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+        .stat-box:hover::before {
+            transform: translateX(0);
+        }
+        .stat-box:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 10px 20px var(--shadow-medium);
+        }
+        .stat-present {
+            background: rgba(76, 175, 80, 0.1);
+        }
+        .stat-absent {
+            background: rgba(244, 67, 54, 0.1);
+        }
+        .stat-number {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--primary-blue);
+        }
+        .stat-label {
+            color: var(--grey-text);
+            margin-top: 0.5rem;
+            font-size: 1rem;
+        }
+
+        /* Actions */
+        .actions {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+        .action-btn {
+            padding: 0.8rem 1.5rem;
+            border: none;
+            border-radius: 30px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: var(--transition);
+            position: relative;
+            overflow: hidden;
+            z-index: 1;
+        }
+        .action-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            transition: left 0.4s ease;
+            z-index: -1;
+        }
+        .action-btn:hover::before {
+            left: 0;
+        }
+        .action-btn:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px var(--shadow-medium);
+        }
+        .save-btn {
+            background: var(--primary-blue);
+            color: var(--white);
+        }
+        .save-btn::before {
+            background: var(--accent-green);
+        }
+        .reset-btn {
+            background: var(--bg-light);
+            color: var(--text-dark);
+        }
+        .reset-btn::before {
+            background: var(--accent-green);
+        }
+
+        /* Disabled Section */
+        .disabled-section {
+            opacity: 0.6;
+            pointer-events: none;
+        }
+        .disabled-message {
+            padding: 1.5rem;
+            background: var(--bg-light);
+            border-radius: 10px;
+            margin-bottom: 2rem;
+            color: var(--grey-text);
+            text-align: center;
+            font-size: 1.1rem;
+            box-shadow: 0 5px 15px var(--shadow-light);
+            transition: var(--transition);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            main {
+                padding: 1.5rem;
+            }
+            .container {
+                padding: 2rem;
+            }
+            h1 {
+                font-size: 2.5rem;
+            }
+            h2 {
+                font-size: 1.8rem;
+            }
+            p {
+                font-size: 1rem;
+            }
+            .tabs {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+            .tab {
+                padding: 0.7rem 1rem;
+            }
+            .face-recognition {
+                padding: 1.5rem;
+            }
+            .camera-container {
+                max-width: 100%;
+            }
+            .camera-controls {
+                flex-wrap: wrap;
+            }
+            .stats {
+                gap: 1rem;
+            }
+            .stat-box {
+                padding: 1rem;
+            }
+            .stat-number {
+                font-size: 1.8rem;
+            }
+            .actions {
+                flex-direction: column;
+            }
+            .back-to-top {
+                width: 45px;
+                height: 45px;
+                bottom: 20px;
+                right: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Loading Screen -->
+    <div class="loader-container" id="loader">
+        <div class="loader"></div>
+    </div>
+    <!-- Progress Bar -->
+    <div class="progress-bar" id="progressBar"></div>
+    <!-- Back to Top Button -->
+    <div class="back-to-top" id="backToTop">
+        <i class="fas fa-arrow-up"></i>
+    </div>
+    <!-- Navigation -->
+    <nav>
+        <div class="nav-container">
+            <a href="home" class="logo">
+                <i class="fas fa-graduation-cap"></i>
+                Smart Classroom
+            </a>
+            <div class="hamburger" id="hamburger">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+    </nav>
+    <!-- Sidebar Menu -->
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-menu">
+            <a href="home" class="sidebar-item">
+                <span>Home</span>
+                <i class="fas fa-home"></i>
+            </a>
+            <a href="attendance.html" class="sidebar-item active">
+                <span>Attendance</span>
+                <i class="fas fa-user-check"></i>
+            </a>
+            <a href="assignments.html" class="sidebar-item">
+                <span>Assignment</span>
+                <i class="fas fa-calendar-alt"></i>
+            </a>
+            <a href="recorded_class.html" class="sidebar-item">
+                <span>Recorded Classes</span>
+                <i class="fas fa-video"></i>
+            </a>
+            <a href="notes.html" class="sidebar-item">
+                <span>Notes</span>
+                <i class="fas fa-sticky-note"></i>
+            </a>
+            <a href="notices.html" class="sidebar-item">
+                <span>Notices</span>
+                <i class="fas fa-bell"></i>
+            </a>
+            <a href="profile.html" class="sidebar-item">
+                <span>Your Profile</span>
+                <i class="fas fa-user"></i>
+            </a>
+            <a href="academic_profile.html" class="sidebar-item">
+                <span>Academic Profile</span>
+                <i class="fas fa-graduation-cap"></i>
+            </a>
+            <a href="settings.html" class="sidebar-item">
+                <span>Settings</span>
+                <i class="fas fa-cog"></i>
+            </a>
+        </div>
+    </div>
+    <!-- Main Content -->
+    <main>
+        <div class="container" id="container">
+            <h1>Smart Classroom Attendance</h1>
+            <p>Mark student attendance using face recognition or RFID</p>
+            <!-- Session Status Banner -->
+            <div id="session-status-banner" class="session-status-banner"></div>
+            <!-- Tabs -->
+            <div class="tabs">
+                <div class="tab active" onclick="openTab(event, 'attendance-tab')">Mark Attendance</div>
+                <div class="tab" onclick="openTab(event, 'registration-tab')">Face Registration</div>
+                <div class="tab" onclick="openTab(event, 'rfid-tab')">RFID</div>
+            </div>
+            <!-- Attendance Tab -->
+            <div id="attendance-tab" class="tab-content active">
+                <div id="attendance-disabled-message" class="disabled-message" style="display: none;">
+                    <p>The teacher has not started the attendance session yet. Please wait until the teacher starts the session.</p>
+                </div>
+                <div id="attendance-enabled-content">
+                    <div class="face-recognition">
+                        <div class="camera-container">
+                            <video id="video" autoplay></video>
+                            <canvas id="canvas" style="display:none;"></canvas>
+                        </div>
+                        <div class="camera-controls">
+                            <button id="start-camera" class="recognition-btn start-btn">Start Camera</button>
+                            <button id="capture" class="recognition-btn capture-btn" disabled>Capture & Recognize</button>
+                            <button id="stop-camera" class="recognition-btn stop-btn" disabled>Stop Camera</button>
+                        </div>
+                        <div id="recognition-status" class="recognition-status"></div>
+                    </div>
+                    <table id="attendance-table">
+                        <thead>
+                            <tr><th>ID</th><th>Name</th><th>Subject</th><th>Status</th></tr>
+                        </thead>
+                        <tbody id="attendance-tbody">
+                            <!-- Dynamically populated -->
+                        </tbody>
+                    </table>
+                    <div class="stats">
+                        <div class="stat-box stat-present">
+                            <div class="stat-number" id="present-count">0</div>
+                            <div class="stat-label">Present</div>
+                        </div>
+                        <div class="stat-box stat-absent">
+                            <div class="stat-number" id="absent-count">0</div>
+                            <div class="stat-label">Absent</div>
+                        </div>
+                    </div>
+                    <div class="actions">
+                        <button class="action-btn save-btn" onclick="save()">Save Attendance</button>
+                        <button class="action-btn reset-btn" onclick="resetAttendance()">Reset Attendance</button>
+                    </div>
+                </div>
+            </div>
+            <!-- Registration Tab -->
+            <div id="registration-tab" class="tab-content">
+                <h2>Register Student Faces</h2>
+                <p>Capture and store student faces for attendance recognition</p>
+                <div class="registration-form">
+                    <div class="form-group">
+                        <label for="student-select">Select Student:</label>
+                        <select id="student-select">
+                            <option value="">-- Select Student --</option>
+                            <!-- Dynamically populated -->
+                        </select>
+                    </div>
+                    <div class="camera-container">
+                        <video id="registration-video" autoplay></video>
+                        <canvas id="registration-canvas" style="display:none;"></canvas>
+                    </div>
+                    <div class="camera-controls">
+                        <button id="start-registration-camera" class="recognition-btn start-btn">Start Camera</button>
+                        <button id="register-face" class="recognition-btn capture-btn" disabled>Register Face</button>
+                        <button id="stop-registration-camera" class="recognition-btn stop-btn" disabled>Stop Camera</button>
+                    </div>
+                    <button id="save-registration" class="register-btn" disabled>Save to Database</button>
+                </div>
+                <div class="registered-students">
+                    <h3>Registered Students</h3>
+                    <div id="registered-list"></div>
+                    <button id="clear-all-btn" class="clear-all-btn">Clear All Registered Students</button>
+                </div>
+            </div>
+            <!-- RFID Tab -->
+            <div id="rfid-tab" class="tab-content">
+                <div class="disabled-message">
+                    <p>RFID attendance feature is currently disabled. All students are marked as Absent by default.</p>
+                </div>
+                <table id="rfid-table">
+                    <thead>
+                        <tr><th>ID</th><th>Name</th><th>Subject</th><th>Status</th></tr>
+                    </thead>
+                    <tbody id="rfid-tbody">
+                        <!-- Dynamically populated -->
+                    </tbody>
+                </table>
+                <div class="stats">
+                    <div class="stat-box stat-present">
+                        <div class="stat-number" id="rfid-present-count">0</div>
+                        <div class="stat-label">Present</div>
+                    </div>
+                    <div class="stat-box stat-absent">
+                        <div class="stat-number" id="rfid-absent-count">0</div>
+                        <div class="stat-label">Absent</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+    <script>
+        // Database simulation using localStorage for session only (face data now in Firestore)
+        const localDb = {
+            getAttendanceSession: function() {
+                // Return a default active session for testing
+                return { active: true };
+            }
+        };
+
+        // Face recognition variables
+        let video = document.getElementById('video');
+        let canvas = document.getElementById('canvas');
+        let context = canvas.getContext('2d');
+        let stream = null;
+
+        // Registration variables
+        let registrationVideo = document.getElementById('registration-video');
+        let registrationCanvas = document.getElementById('registration-canvas');
+        let registrationContext = registrationCanvas.getContext('2d');
+        let registrationStream = null;
+        let capturedFaceData = null;
+
+        // Loading Screen
+        window.addEventListener('load', function() {
+            setTimeout(function() {
+                document.getElementById('loader').style.opacity = '0';
+                document.getElementById('loader').style.visibility = 'hidden';
+                document.getElementById('container').classList.add('visible');
+                document.querySelectorAll('.face-recognition, .stat-box').forEach(element => {
+                    element.classList.add('visible');
+                });
+            }, 1000);
+        });
+
+        // Progress Bar
+        window.addEventListener('scroll', function() {
+            const scrollPosition = window.scrollY;
+            const documentHeight = document.documentElement.scrollHeight - window.innerHeight;
+            const scrollPercentage = documentHeight > 0 ? (scrollPosition / documentHeight) * 100 : 0;
+            document.getElementById('progressBar').style.width = scrollPercentage + '%';
+        });
+
+        // Back to Top Button
+        const backToTopButton = document.getElementById('backToTop');
+        window.addEventListener('scroll', function() {
+            if (window.scrollY > 400) {
+                backToTopButton.classList.add('visible');
+            } else {
+                backToTopButton.classList.remove('visible');
+            }
+        });
+        backToTopButton.addEventListener('click', function() {
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        });
+
+        // Hamburger Menu Toggle
+        const hamburger = document.getElementById('hamburger');
+        const sidebar = document.getElementById('sidebar');
+        hamburger.addEventListener('click', function() {
+            hamburger.classList.toggle('active');
+            sidebar.classList.toggle('active');
+        });
+
+        // Sidebar Navigation
+        document.querySelectorAll('.sidebar-item').forEach(item => {
+            item.addEventListener('click', function(e) {
+                e.preventDefault();
+                const href = this.getAttribute('href');
+                if (href) {
+                    window.location.href = href;
+                }
+            });
+        });
+
+        // Tab functions
+        function openTab(evt, tabName) {
+            const tabContents = document.getElementsByClassName("tab-content");
+            for (let i = 0; i < tabContents.length; i++) {
+                tabContents[i].classList.remove("active");
+            }
+            const tabs = document.getElementsByClassName("tab");
+            for (let i = 0; i < tabs.length; i++) {
+                tabs[i].classList.remove("active");
+            }
+            document.getElementById(tabName).classList.add("active");
+            evt.currentTarget.classList.add("active");
+            if (tabName === 'registration-tab') {
+                loadRegisteredStudents();
+            }
+            if (tabName === 'attendance-tab') {
+                checkAttendanceSessionStatus();
+                loadAttendanceTable();
+            }
+            if (tabName === 'rfid-tab') {
+                loadRFIDTable();
+            }
+        }
+
+        // Check attendance session status
+        function checkAttendanceSessionStatus() {
+            const sessionBanner = document.getElementById('session-status-banner');
+            const disabledMessage = document.getElementById('attendance-disabled-message');
+            const enabledContent = document.getElementById('attendance-enabled-content');
+            
+            // Force session to be active for testing
+            sessionBanner.textContent = 'Attendance session is active. You can mark your attendance now.';
+            sessionBanner.className = 'session-status-banner session-active visible';
+            disabledMessage.style.display = 'none';
+            enabledContent.style.display = 'block';
+            enabledContent.classList.remove('disabled-section');
+        }
+
+        // Load attendance table dynamically
+        async function loadAttendanceTable() {
+            try {
+                const res = await fetch('/api/get_all_students');
+                const data = await res.json();
+                if (data.status !== 'success') throw new Error(data.message);
+                const tbody = document.getElementById('attendance-tbody');
+                tbody.innerHTML = '';
+                data.students.forEach(s => {
+                    const tr = document.createElement('tr');
+                    tr.setAttribute('data-student-id', s.regNo);
+                    tr.innerHTML = `
+                        <td>${s.regNo}</td>
+                        <td>${s.name}</td>
+                        <td>Computer Science</td>
+                        <td class="status-cell status-absent">Absent</td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+                // Load today's attendance and update statuses
+                const attRes = await fetch('/api/get_today_attendance');
+                const attData = await attRes.json();
+                if (attData.status === 'success') {
+                    Object.keys(attData.attendance).forEach(regNo => {
+                        const row = document.querySelector(`tr[data-student-id="${regNo}"]`);
+                        if (row && attData.attendance[regNo].status === 'Present') {
+                            const statusCell = row.querySelector('.status-cell');
+                            statusCell.textContent = 'Present';
+                            statusCell.classList.remove('status-absent');
+                            statusCell.classList.add('status-present');
+                        }
+                    });
+                }
+                updateStats();
+            } catch (error) {
+                console.error("Error loading attendance table:", error);
+                showStatus("Error loading students or attendance.", "error");
+            }
+        }
+
+        // Load RFID table dynamically
+        async function loadRFIDTable() {
+            try {
+                const res = await fetch('/api/get_all_students');
+                const data = await res.json();
+                if (data.status !== 'success') throw new Error(data.message);
+                const tbody = document.getElementById('rfid-tbody');
+                tbody.innerHTML = '';
+                data.students.forEach(s => {
+                    const tr = document.createElement('tr');
+                    tr.setAttribute('data-student-id', s.regNo);
+                    tr.innerHTML = `
+                        <td>${s.regNo}</td>
+                        <td>${s.name}</td>
+                        <td>Computer Science</td>
+                        <td class="status-cell status-absent">Absent</td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+                updateRFIDStats();
+            } catch (error) {
+                console.error("Error loading RFID table:", error);
+                showStatus("Error loading RFID students.", "error");
+            }
+        }
+
+        // Update attendance statistics
+        function updateStats() {
+            let present = 0, absent = 0;
+            document.querySelectorAll('#attendance-table tbody tr').forEach(row => {
+                const statusCell = row.querySelector('.status-cell');
+                if (statusCell.classList.contains('status-present')) {
+                    present++;
+                } else {
+                    absent++;
+                }
+            });
+            document.getElementById('present-count').textContent = present;
+            document.getElementById('absent-count').textContent = absent;
+        }
+
+        // Update RFID statistics
+        function updateRFIDStats() {
+            let present = 0, absent = 0;
+            document.querySelectorAll('#rfid-table tbody tr').forEach(row => {
+                const statusCell = row.querySelector('.status-cell');
+                if (statusCell.classList.contains('status-present')) {
+                    present++;
+                } else {
+                    absent++;
+                }
+            });
+            document.getElementById('rfid-present-count').textContent = present;
+            document.getElementById('rfid-absent-count').textContent = absent;
+        }
+
+        function save() {
+            alert("Attendance is automatically saved on successful recognition.");
+        }
+
+        async function resetAttendance() {
+            if (!confirm("Are you sure you want to reset today's attendance?")) return;
+            try {
+                const res = await fetch('/api/reset_today_attendance', { method: 'POST' });
+                const data = await res.json();
+                if (data.status === 'success') {
+                    document.querySelectorAll('#attendance-table tbody tr').forEach(row => {
+                        const statusCell = row.querySelector('.status-cell');
+                        statusCell.textContent = 'Absent';
+                        statusCell.classList.remove('status-present');
+                        statusCell.classList.add('status-absent');
+                    });
+                    updateStats();
+                    showStatus("Attendance has been reset.", "info");
+                } else {
+                    throw new Error(data.message);
+                }
+            } catch (error) {
+                console.error("Error resetting attendance:", error);
+                showStatus("Error resetting attendance.", "error");
+            }
+        }
+
+        // Camera functions for attendance
+        document.getElementById('start-camera').addEventListener('click', async () => {
+            try {
+                stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                video.srcObject = stream;
+                document.getElementById('start-camera').disabled = true;
+                document.getElementById('capture').disabled = false;
+                document.getElementById('stop-camera').disabled = false;
+                showStatus("Camera started. Position yourself in front of the camera.", "info");
+            } catch (err) {
+                console.error("Error accessing camera: ", err);
+                showStatus("Could not access the camera. Please check permissions.", "error");
+            }
+        });
+
+        document.getElementById('capture').addEventListener('click', () => {
+            captureAndRecognize();
+        });
+
+        document.getElementById('stop-camera').addEventListener('click', () => {
+            stopCamera();
+        });
+
+        function stopCamera() {
+            if (stream) {
+                stream.getTracks().forEach(track => track.stop());
+                video.srcObject = null;
+                document.getElementById('start-camera').disabled = false;
+                document.getElementById('capture').disabled = true;
+                document.getElementById('stop-camera').disabled = true;
+                showStatus("Camera stopped.", "info");
+            }
+        }
+
+        function captureAndRecognize() {
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            context.drawImage(video, 0, 0, canvas.width, canvas.height);
+            const imageData = canvas.toDataURL('image/jpeg');
+            recognizeFace(imageData);
+        }
+
+        async function recognizeFace(imageData) {
+            showStatus("Processing face recognition...", "info");
+            try {
+                const res = await fetch('/api/recognize_face', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ image: imageData })
+                });
+                const data = await res.json();
+                if (data.status === 'success') {
+                    const row = document.querySelector(`tr[data-student-id="${data.studentId}"]`);
+                    if (row) {
+                        const statusCell = row.querySelector('.status-cell');
+                        statusCell.textContent = 'Present';
+                        statusCell.classList.remove('status-absent');
+                        statusCell.classList.add('status-present');
+                        updateStats();
+                        showStatus(`Recognized: ${data.name} (${data.studentId}) - Marked as present`, "success");
+                    } else {
+                        showStatus("Recognized but student not in list", "error");
+                    }
+                } else {
+                    showStatus(data.message, "error");
+                }
+            } catch (error) {
+                console.error("Error recognizing face:", error);
+                showStatus("An error occurred during recognition.", "error");
+            }
+        }
+
+        function showStatus(message, type) {
+            const statusElement = document.getElementById('recognition-status');
+            statusElement.textContent = message;
+            statusElement.className = 'recognition-status';
+            if (type === 'success') {
+                statusElement.classList.add('status-success');
+            } else if (type === 'error') {
+                statusElement.classList.add('status-error');
+            } else {
+                statusElement.classList.add('status-info');
+            }
+            statusElement.style.display = 'block';
+            setTimeout(() => {
+                statusElement.style.display = 'none';
+            }, 5000);
+        }
+
+        // Registration functions
+        document.getElementById('start-registration-camera').addEventListener('click', async () => {
+            try {
+                registrationStream = await navigator.mediaDevices.getUserMedia({ video: true });
+                registrationVideo.srcObject = registrationStream;
+                document.getElementById('start-registration-camera').disabled = true;
+                document.getElementById('register-face').disabled = false;
+                document.getElementById('stop-registration-camera').disabled = false;
+                showRegistrationStatus("Camera started. Position the student in front of the camera.", "info");
+            } catch (err) {
+                console.error("Error accessing camera: ", err);
+                showRegistrationStatus("Could not access the camera. Please check permissions.", "error");
+            }
+        });
+
+        document.getElementById('register-face').addEventListener('click', () => {
+            captureFaceForRegistration();
+        });
+
+        document.getElementById('stop-registration-camera').addEventListener('click', () => {
+            stopRegistrationCamera();
+        });
+
+        document.getElementById('save-registration').addEventListener('click', () => {
+            saveFaceToDatabase();
+        });
+
+        document.getElementById('student-select').addEventListener('change', function() {
+            capturedFaceData = null;
+            document.getElementById('save-registration').disabled = true;
+        });
+
+        document.getElementById('clear-all-btn').addEventListener('click', async function() {
+            if (confirm("Are you sure you want to delete all registered face data? This action cannot be undone.")) {
+                try {
+                    const res = await fetch('/api/clear_all_faces', { method: 'POST' });
+                    const data = await res.json();
+                    if (data.status === 'success') {
+                        loadRegisteredStudents();
+                        showRegistrationStatus("All registered face data has been deleted.", "success");
+                    } else {
+                        throw new Error(data.message);
+                    }
+                } catch (error) {
+                    console.error("Error clearing all faces:", error);
+                    showRegistrationStatus("An error occurred while clearing all face data.", "error");
+                }
+            }
+        });
+
+        function stopRegistrationCamera() {
+            if (registrationStream) {
+                registrationStream.getTracks().forEach(track => track.stop());
+                registrationVideo.srcObject = null;
+                document.getElementById('start-registration-camera').disabled = false;
+                document.getElementById('register-face').disabled = true;
+                document.getElementById('stop-registration-camera').disabled = true;
+                showRegistrationStatus("Camera stopped.", "info");
+            }
+        }
+
+        function captureFaceForRegistration() {
+            const regNo = document.getElementById('student-select').value;
+            if (!regNo) {
+                showRegistrationStatus("Please select a student first.", "error");
+                return;
+            }
+            registrationCanvas.width = registrationVideo.videoWidth;
+            registrationCanvas.height = registrationVideo.videoHeight;
+            registrationContext.drawImage(registrationVideo, 0, 0, registrationCanvas.width, registrationCanvas.height);
+            capturedFaceData = registrationCanvas.toDataURL('image/jpeg');
+            document.getElementById('save-registration').disabled = false;
+            showRegistrationStatus("Face captured. Click 'Save to Database' to register.", "success");
+        }
+
+        async function saveFaceToDatabase() {
+            const regNo = document.getElementById('student-select').value;
+            const studentName = document.getElementById('student-select').options[document.getElementById('student-select').selectedIndex].text.split(' (')[0];
+            if (!regNo || !capturedFaceData) {
+                showRegistrationStatus("Please select a student and capture their face first.", "error");
+                return;
+            }
+            try {
+                const res = await fetch('/api/register_face', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ regNo: regNo, image: capturedFaceData })
+                });
+                const data = await res.json();
+                if (data.status === 'success') {
+                    document.getElementById('student-select').value = "";
+                    capturedFaceData = null;
+                    document.getElementById('save-registration').disabled = true;
+                    loadRegisteredStudents();
+                    showRegistrationStatus(`Student ${studentName} (${regNo}) registered successfully!`, "success");
+                } else {
+                    showRegistrationStatus(data.message, "error");
+                }
+            } catch (error) {
+                console.error("Error saving face to database:", error);
+                showRegistrationStatus("An error occurred while saving to the database.", "error");
+            }
+        }
+
+        async function loadRegisteredStudents() {
+            try {
+                const res = await fetch('/api/get_registered_students');
+                const data = await res.json();
+                const registeredList = document.getElementById('registered-list');
+                if (data.status !== 'success' || data.students.length === 0) {
+                    registeredList.innerHTML = "<p>No students registered yet.</p>";
+                    return;
+                }
+                registeredList.innerHTML = "";
+                data.students.forEach(student => {
+                    const studentCard = document.createElement('div');
+                    studentCard.className = 'student-card';
+                    studentCard.innerHTML = `
+                        <img src="${student.face_image || 'data:image/jpeg;base64,'}" alt="${student.name}" class="student-avatar">
+                        <div class="student-info">
+                            <div class="student-name">${student.name}</div>
+                            <div class="student-id">${student.regNo}</div>
+                        </div>
+                        <button class="delete-btn" data-student-id="${student.regNo}">Delete</button>
+                    `;
+                    registeredList.appendChild(studentCard);
+                });
+            } catch (error) {
+                console.error("Error loading registered students:", error);
+                document.getElementById('registered-list').innerHTML = "<p>Error loading registered students.</p>";
+            }
+        }
+
+        async function deleteStudent(regNo) {
+            try {
+                if (!confirm(`Are you sure you want to delete face data for regNo ${regNo}?`)) return;
+                const res = await fetch('/api/delete_face', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ regNo: regNo })
+                });
+                const data = await res.json();
+                if (data.status === 'success') {
+                    loadRegisteredStudents();
+                    showRegistrationStatus("Face data deleted successfully.", "success");
+                } else {
+                    showRegistrationStatus(data.message, "error");
+                }
+            } catch (error) {
+                console.error("Error deleting student:", error);
+                showRegistrationStatus("An error occurred while deleting the face data.", "error");
+            }
+        }
+
+        function showRegistrationStatus(message, type) {
+            let statusElement = document.getElementById('registration-status');
+            if (!statusElement) {
+                statusElement = document.createElement('div');
+                statusElement.id = 'registration-status';
+                statusElement.className = 'recognition-status';
+                document.querySelector('.registration-form').appendChild(statusElement);
+            }
+            statusElement.textContent = message;
+            statusElement.className = 'recognition-status';
+            if (type === 'success') {
+                statusElement.classList.add('status-success');
+            } else if (type === 'error') {
+                statusElement.classList.add('status-error');
+            } else {
+                statusElement.classList.add('status-info');
+            }
+            statusElement.style.display = 'block';
+            setTimeout(() => {
+                statusElement.style.display = 'none';
+            }, 5000);
+        }
+
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', async function() {
+            // Populate student select for registration
+            try {
+                const res = await fetch('/api/get_all_students');
+                const data = await res.json();
+                if (data.status === 'success') {
+                    const select = document.getElementById('student-select');
+                    select.innerHTML = '<option value="">-- Select Student --</option>';
+                    data.students.forEach(s => {
+                        const option = document.createElement('option');
+                        option.value = s.regNo;
+                        option.textContent = `${s.name} (${s.regNo})`;
+                        select.appendChild(option);
+                    });
+                }
+            } catch (error) {
+                console.error("Error populating student select:", error);
+            }
+
+            // Event delegation for delete buttons
+            document.addEventListener('click', function(e) {
+                if (e.target.classList.contains('delete-btn')) {
+                    const regNo = e.target.getAttribute('data-student-id');
+                    deleteStudent(regNo);
+                }
+            });
+
+            // Initial stats are 0 until loaded
+            document.getElementById('present-count').textContent = 0;
+            document.getElementById('absent-count').textContent = 0;
+            document.getElementById('rfid-present-count').textContent = 0;
+            document.getElementById('rfid-absent-count').textContent = 0;
+
+            checkAttendanceSessionStatus();
+            setInterval(checkAttendanceSessionStatus, 5000);
+        });
+
+        // Intersection Observer for animations
+        const observerOptions = {
+            root: null,
+            rootMargin: '0px',
+            threshold: 0.1
+        };
+        const observer = new IntersectionObserver(function(entries) {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                }
+            });
+        }, observerOptions);
+        document.querySelectorAll('.container, .face-recognition, .stat-box, .session-status-banner').forEach(element => {
+            observer.observe(element);
+        });
+    </script>
+</body>
+</html>

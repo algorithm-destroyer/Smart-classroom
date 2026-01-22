@@ -1,0 +1,1365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title data-i18n="title">Smart Classroom - Revolutionizing Education</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Noto+Serif+Devanagari:wght@400;700&family=Noto+Serif+Gurmukhi:wght@400;700&display=swap">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css">
+    <style>
+        /* General Styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', 'Noto Serif Devanagari', 'Noto Serif Gurmukhi', sans-serif;
+        }
+
+        :root {
+            --primary-blue: #0A1B4F;
+            --secondary-blue: #1C3373;
+            --accent-green: #2ecc71;
+            --text-dark: #333;
+            --text-light: #f4f7fa;
+            --bg-light: #f8faff;
+            --white: #ffffff;
+            --grey-text: #6e7a8e;
+            --shadow-light: rgba(0, 0, 0, 0.08);
+            --shadow-medium: rgba(0, 0, 0, 0.15);
+            --transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+
+        body {
+            background: linear-gradient(135deg, #e0f2f7, #c7e8f0);
+            min-height: 100vh;
+            color: var(--text-dark);
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* Language-specific font adjustments */
+        body[lang="hi"] {
+            font-family: 'Noto Serif Devanagari', sans-serif;
+        }
+        body[lang="pa"] {
+            font-family: 'Noto Serif Gurmukhi', sans-serif;
+        }
+
+        /* Language Dropdown Styles */
+        #language-selector {
+            background-color: var(--accent-green);
+            color: var(--primary-blue); /* Changed from text-white to primary-blue for better contrast */
+            border: 1px solid var(--secondary-blue);
+            border-radius: 1.5rem;
+            padding: 0.5rem 1rem;
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        #language-selector:hover {
+            background-color: var(--secondary-blue);
+            color: var(--white);
+            box-shadow: 0 4px 10px rgba(46, 204, 113, 0.4);
+        }
+        #language-selector:focus {
+            outline: none;
+            box-shadow: 0 0 0 2px var(--accent-green);
+        }
+        #language-selector option {
+            background-color: var(--white);
+            color: var(--text-dark);
+            font-family: 'Poppins', 'Noto Serif Devanagari', 'Noto Serif Gurmukhi', sans-serif;
+        }
+
+        /* Abstract Shapes */
+        body::before, body::after {
+            content: '';
+            position: absolute;
+            background-repeat: no-repeat;
+            opacity: 0.1;
+            z-index: -1;
+        }
+        body::before {
+            width: 300px;
+            height: 300px;
+            top: -50px;
+            left: -50px;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'%3E%3Cdefs%3E%3ClinearGradient id='a' x1='0%' y1='0%' x2='100%' y2='100%'%3E%3Cstop offset='0%' stop-color='%231C3373'/%3E%3Cstop offset='100%' stop-color='%230A1B4F'/%3E%3C/linearGradient%3E%3C/defs%3E%3Ccircle cx='100' cy='100' r='90' fill='url(%23a)'/%3E%3C/svg%3E");
+            transform: rotate(30deg);
+            animation: moveShape1 10s infinite alternate;
+        }
+        body::after {
+            width: 250px;
+            height: 250px;
+            bottom: -70px;
+            right: -70px;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'%3E%3Cdefs%3E%3ClinearGradient id='a' x1='0%' y1='0%' x2='100%' y2='100%'%3E%3Cstop offset='0%' stop-color='%232ecc71'/%3E%3Cstop offset='100%' stop-color='%231C3373'/%3E%3C/linearGradient%3E%3C/defs%3E%3Cpolygon points='100,0 200,75 160,200 40,200 0,75' fill='url(%23a)'/%3E%3C/svg%3E");
+            transform: rotate(-45deg);
+            animation: moveShape2 12s infinite alternate-reverse;
+        }
+        @keyframes moveShape1 {
+            from { transform: translate(-50px, -50px) rotate(30deg); }
+            to { transform: translate(50px, 50px) rotate(60deg); }
+        }
+        @keyframes moveShape2 {
+            from { transform: translate(70px, 70px) rotate(-45deg); }
+            to { transform: translate(-70px, -70px) rotate(-15deg); }
+        }
+
+        /* Loading Screen */
+        .loader-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: var(--primary-blue);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            transition: opacity 0.6s ease, visibility 0.6s ease;
+        }
+        .loader {
+            width: 70px;
+            height: 70px;
+            border: 6px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: var(--accent-green);
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Progress Bar */
+        .progress-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 5px;
+            background-color: var(--accent-green);
+            box-shadow: 0 0 10px var(--accent-green);
+            z-index: 1001;
+            width: 0;
+            transition: width 0.2s linear;
+        }
+
+        /* Back to Top Button */
+        .back-to-top {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 55px;
+            height: 55px;
+            background-color: var(--secondary-blue);
+            color: var(--white);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            opacity: 0;
+            visibility: hidden;
+            transition: var(--transition);
+            box-shadow: 0 5px 15px var(--shadow-medium);
+            z-index: 1000;
+        }
+        .back-to-top:hover {
+            background-color: var(--accent-green);
+            transform: translateY(-8px) scale(1.05);
+            box-shadow: 0 8px 20px var(--accent-green);
+        }
+        .back-to-top.visible {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* Navigation */
+        nav {
+            background-color: var(--primary-blue);
+            box-shadow: 0 5px 15px var(--shadow-medium);
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+            transition: var(--transition);
+        }
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .logo {
+            display: flex;
+            align-items: center;
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--white);
+            text-decoration: none;
+            transition: var(--transition);
+        }
+        .logo:hover {
+            transform: scale(1.05);
+        }
+        .logo i {
+            margin-right: 0.5rem;
+            font-size: 2.2rem;
+            animation: float 3s infinite ease-in-out;
+            color: var(--accent-green);
+        }
+        @keyframes float {
+            0% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+            100% { transform: translateY(0); }
+        }
+        .nav-right {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        .login-btn {
+            background-color: var(--accent-green);
+            color: var(--white);
+            border: none;
+            padding: 0.8rem 1.5rem;
+            border-radius: 30px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 1rem;
+            position: relative;
+            overflow: hidden;
+            z-index: 1;
+        }
+        .login-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background-color: var(--secondary-blue);
+            transition: left 0.4s ease;
+            z-index: -1;
+        }
+        .login-btn:hover::before {
+            left: 0;
+        }
+        .login-btn:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(46, 204, 113, 0.4);
+        }
+        .hamburger {
+            display: flex;
+            flex-direction: column;
+            cursor: pointer;
+            padding: 5px;
+            z-index: 1001;
+        }
+        .hamburger span {
+            width: 25px;
+            height: 3px;
+            background-color: var(--white);
+            margin: 3px 0;
+            transition: var(--transition);
+        }
+        .hamburger.active span:nth-child(1) {
+            transform: rotate(-45deg) translate(-5px, 6px);
+        }
+        .hamburger.active span:nth-child(2) {
+            opacity: 0;
+        }
+        .hamburger.active span:nth-child(3) {
+            transform: rotate(45deg) translate(-5px, -6px);
+        }
+
+        /* Sidebar Menu */
+        .sidebar {
+            position: fixed;
+            top: 70px;
+            right: -300px;
+            width: 300px;
+            height: calc(100vh - 70px);
+            background-color: var(--secondary-blue);
+            transition: var(--transition);
+            z-index: 999;
+            overflow-y: auto;
+            box-shadow: -2px 0 10px var(--shadow-medium);
+        }
+        .sidebar.active {
+            right: 0;
+        }
+        .sidebar-menu {
+            padding: 1.5rem 0;
+        }
+        .sidebar-item {
+            padding: 1rem 1.5rem;
+            color: var(--white);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            text-decoration: none;
+            position: relative;
+            overflow: hidden;
+        }
+        .sidebar-item::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 0;
+            height: 100%;
+            background-color: var(--accent-green);
+            transition: width 0.3s ease;
+            z-index: -1;
+        }
+        .sidebar-item:hover::before {
+            width: 100%;
+        }
+        .sidebar-item i {
+            transition: var(--transition);
+            color: var(--accent-green);
+        }
+        .sidebar-item.active i {
+            transform: rotate(90deg);
+        }
+        .sub-menu {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+            background-color: rgba(0, 0, 0, 0.1);
+        }
+        .sub-menu.active {
+            max-height: 500px;
+        }
+        .sub-item {
+            padding: 0.8rem 3rem;
+            color: var(--text-light);
+            cursor: pointer;
+            transition: var(--transition);
+            text-decoration: none;
+            display: block;
+            position: relative;
+        }
+        .sub-item::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 3rem;
+            width: 0;
+            height: 1px;
+            background-color: var(--accent-green);
+            transition: width 0.3s ease;
+        }
+        .sub-item:hover::after {
+            width: calc(100% - 3rem);
+        }
+
+        /* Main Content */
+        main {
+            margin-top: 70px;
+            padding: 3rem 2rem;
+            max-width: 1200px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        section {
+            margin-bottom: 4rem;
+            background-color: var(--white);
+            border-radius: 20px;
+            padding: 2.5rem;
+            box-shadow: 0 10px 30px var(--shadow-light);
+            opacity: 0;
+            transform: translateY(50px);
+            transition: opacity 1s cubic-bezier(0.25, 0.8, 0.25, 1), transform 1s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+        section.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        h1, h2 {
+            color: var(--primary-blue);
+            margin-bottom: 1.5rem;
+        }
+        h1 {
+            font-size: 3.5rem;
+            text-align: center;
+            font-weight: 700;
+            position: relative;
+        }
+        h1::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--secondary-blue), var(--accent-green));
+            animation: expandWidth 1.8s cubic-bezier(0.25, 0.8, 0.25, 1) forwards;
+            border-radius: 2px;
+        }
+        h2 {
+            font-size: 2rem;
+            font-weight: 600;
+        }
+        @keyframes expandWidth {
+            from { width: 0; }
+            to { width: 100%; }
+        }
+        p {
+            margin-bottom: 1rem;
+            color: var(--grey-text);
+            line-height: 1.8;
+            font-size: 1.1rem;
+        }
+
+        /* Hero Section */
+        .hero {
+            text-align: center;
+            padding: 3rem 2rem;
+            background: linear-gradient(135deg, var(--primary-blue), var(--secondary-blue));
+            color: var(--white);
+            border-radius: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: url('https://images.unsplash.com/photo-1523050854058-8df90110c9f1?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80');
+            background-size: cover;
+            background-position: center;
+            opacity: 0.2;
+            z-index: 0;
+        }
+        .hero-content {
+            position: relative;
+            z-index: 1;
+        }
+        .hero h1 {
+            color: var(--white);
+            font-size: 3.5rem;
+            margin-bottom: 1rem;
+        }
+        .hero p {
+            color: var(--text-light);
+            font-size: 1.3rem;
+            max-width: 800px;
+            margin: 0 auto 2rem;
+            animation: fadeInUp 1.2s ease 0.3s forwards;
+            opacity: 0;
+        }
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        .btn {
+            display: inline-block;
+            background: var(--primary-blue);
+            color: var(--white);
+            padding: 1rem 2rem;
+            border-radius: 30px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: var(--transition);
+            border: none;
+            cursor: pointer;
+            font-size: 1.1rem;
+            position: relative;
+            overflow: hidden;
+            z-index: 1;
+        }
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background-color: var(--accent-green);
+            transition: left 0.4s ease;
+            z-index: -1;
+        }
+        .btn:hover::before {
+            left: 0;
+        }
+        .btn:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(46, 204, 113, 0.4);
+        }
+
+        /* Features Grid */
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2.5rem;
+            margin-top: 2rem;
+        }
+        .feature-card {
+            background: var(--white);
+            border-radius: 20px;
+            padding: 2.5rem;
+            transition: var(--transition);
+            box-shadow: 0 10px 30px var(--shadow-light);
+            position: relative;
+            overflow: hidden;
+            opacity: 0;
+            transform: translateY(50px);
+        }
+        .feature-card.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .feature-card:nth-child(1) { transition-delay: 0.2s; }
+        .feature-card:nth-child(2) { transition-delay: 0.4s; }
+        .feature-card:nth-child(3) { transition-delay: 0.6s; }
+        .feature-card:nth-child(4) { transition-delay: 0.8s; }
+        .feature-card:nth-child(5) { transition-delay: 1.0s; }
+        .feature-card:nth-child(6) { transition-delay: 1.2s; }
+        .feature-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 6px;
+            background: linear-gradient(90deg, var(--primary-blue), var(--accent-green));
+            transform: translateX(-100%);
+            transition: transform 0.6s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+        .feature-card:hover::before {
+            transform: translateX(0);
+        }
+        .feature-card:hover {
+            transform: translateY(-15px) scale(1.03);
+            box-shadow: 0 20px 40px var(--shadow-medium);
+        }
+        .feature-card h3 {
+            color: var(--primary-blue);
+            margin-bottom: 1rem;
+            font-size: 1.8rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+        }
+        .feature-card h3 i {
+            margin-right: 0.5rem;
+            font-size: 2rem;
+            color: var(--secondary-blue);
+            transition: var(--transition);
+            animation: float 3s infinite ease-in-out;
+        }
+        .feature-card:hover h3 i {
+            color: var(--accent-green);
+            animation-play-state: paused;
+            transform: translateY(-5px) scale(1.1);
+        }
+
+        /* Video Section */
+        .video-container {
+            position: relative;
+            width: 100%;
+            height: 0;
+            padding-bottom: 56.25%; /* 16:9 aspect ratio */
+            margin: 2rem 0;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px var(--shadow-light);
+        }
+        .video-container iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        /* Contact Section */
+        .contact-section {
+            background-color: var(--white);
+            border-radius: 20px;
+            padding: 2.5rem;
+            box-shadow: 0 10px 30px var(--shadow-light);
+            margin-bottom: 4rem;
+        }
+        .contact-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 2.5rem;
+        }
+        .contact-info {
+            flex: 1;
+            min-width: 300px;
+        }
+        .contact-form {
+            flex: 1;
+            min-width: 300px;
+        }
+        .contact-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+        .contact-item i {
+            font-size: 1.5rem;
+            color: var(--accent-green);
+            margin-right: 1rem;
+            width: 30px;
+            text-align: center;
+            animation: float 3s infinite ease-in-out;
+        }
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--primary-blue);
+            font-weight: 600;
+        }
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 0.8rem;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: var(--transition);
+            font-family: inherit;
+        }
+        .form-group input:focus,
+        .form-group textarea:focus {
+            border-color: var(--accent-green);
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(46, 204, 113, 0.2);
+        }
+        .form-group textarea {
+            resize: vertical;
+            min-height: 120px;
+        }
+
+        /* Footer */
+        footer {
+            background-color: var(--primary-blue);
+            color: var(--white);
+            text-align: center;
+            padding: 2rem;
+            margin-top: 3rem;
+            position: relative;
+            overflow: hidden;
+        }
+        footer::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 6px;
+            background: linear-gradient(90deg, var(--accent-green), var(--white), var(--accent-green));
+            animation: gradientMove 3s linear infinite;
+        }
+        @keyframes gradientMove {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+        .footer-content {
+            position: relative;
+            z-index: 1;
+        }
+        .social-links {
+            margin-top: 1.5rem;
+            display: flex;
+            justify-content: center;
+            gap: 1.5rem;
+        }
+        .social-links a {
+            color: var(--white);
+            font-size: 1.8rem;
+            transition: var(--transition);
+        }
+        .social-links a:hover {
+            color: var(--accent-green);
+            transform: translateY(-5px) scale(1.1);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .nav-container {
+                padding: 1rem;
+            }
+            .login-btn {
+                display: none;
+            }
+            .language-selector {
+                width: 100px;
+            }
+            .hero h1 {
+                font-size: 2.8rem;
+            }
+            .hero p {
+                font-size: 1.1rem;
+            }
+            main {
+                padding: 1.5rem;
+            }
+            section {
+                padding: 2rem;
+            }
+            .contact-container {
+                flex-direction: column;
+            }
+            .features-grid {
+                gap: 1.5rem;
+            }
+            .feature-card {
+                padding: 2rem;
+            }
+            .feature-card h3 {
+                font-size: 1.6rem;
+            }
+            .feature-card p {
+                font-size: 1rem;
+            }
+            .back-to-top {
+                width: 45px;
+                height: 45px;
+                bottom: 20px;
+                right: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Loading Screen -->
+    <div class="loader-container" id="loader">
+        <div class="loader"></div>
+    </div>
+    <!-- Progress Bar -->
+    <div class="progress-bar" id="progressBar"></div>
+    <!-- Back to Top Button -->
+    <div class="back-to-top" id="backToTop">
+        <i class="fas fa-arrow-up"></i>
+    </div>
+    <!-- Navigation -->
+    <nav>
+        <div class="nav-container">
+            <a href="/" class="logo">
+                <i class="fas fa-graduation-cap"></i>
+                <span data-i18n="nav.logo">Smart Classroom</span>
+            </a>
+            <div class="nav-right">
+                <select id="language-selector" class="language-selector bg-accent-green text-primary-blue border border-secondary-blue px-3 py-2 rounded-full font-semibold cursor-pointer hover:bg-secondary-blue hover:text-white transition-all duration-300">
+                    <option value="en">English</option>
+                    <option value="hi">हिन्दी</option>
+                    <option value="pa">ਪੰਜਾਬੀ</option>
+                </select>
+                <a href="/entry" class="login-btn">
+                    <i class="fas fa-sign-in-alt"></i>
+                    <span data-i18n="nav.login">Login</span>
+                </a>
+                <div class="hamburger" id="hamburger">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+            </div>
+        </div>
+    </nav>
+    <!-- Sidebar Menu -->
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-menu">
+            <a href="#home" class="sidebar-item" data-target="home">
+                <span data-i18n="sidebar.home">Smart Classroom Homepage</span>
+                <i class="fas fa-home"></i>
+            </a>
+            <a href="#about" class="sidebar-item" data-target="about">
+                <span data-i18n="sidebar.about">About Our Application</span>
+                <i class="fas fa-info-circle"></i>
+            </a>
+            <a href="#demo" class="sidebar-item" data-target="demo">
+                <span data-i18n="sidebar.demo">About the App - Demo Video</span>
+                <i class="fas fa-play-circle"></i>
+            </a>
+            <div class="sidebar-item" id="features-toggle">
+                <span data-i18n="sidebar.features">Our Features</span>
+                <i class="fas fa-chevron-right"></i>
+            </div>
+            <div class="sub-menu" id="features-submenu">
+                <a href="#recorded-classes" class="sub-item" data-feature="recorded-classes" data-i18n="sidebar.features.recorded_classes">Recorded Classes</a>
+                <a href="#recorded-notes" class="sub-item" data-feature="recorded-notes" data-i18n="sidebar.features.recorded_notes">Recorded Notes</a>
+                <a href="#speech-to-text" class="sub-item" data-feature="speech-to-text" data-i18n="sidebar.features.speech_to_text">Speech to Text</a>
+                <a href="#attendance" class="sub-item" data-feature="attendance" data-i18n="sidebar.features.attendance">Online Attendance with Location Verification</a>
+                <a href="#timetable" class="sub-item" data-feature="timetable" data-i18n="sidebar.features.timetable">AI Based Timetable Scheduler</a>
+                <a href="#rescheduling" class="sub-item" data-feature="rescheduling" data-i18n="sidebar.features.rescheduling">Rescheduling and Timetable Based on Constraints</a>
+            </div>
+            <a href="/entry" class="sidebar-item">
+                <span data-i18n="sidebar.login">Login</span>
+                <i class="fas fa-sign-in-alt"></i>
+            </a>
+        </div>
+    </div>
+    <!-- Main Content -->
+    <main>
+        <!-- Hero Section -->
+        <section class="hero" id="home">
+            <div class="hero-content">
+                <h1 data-i18n="hero.title">Smart Classroom</h1>
+                <p data-i18n="hero.description">Revolutionizing education through innovative technology and accessible learning platforms</p>
+                <a href="#about" class="btn" data-i18n="hero.button">Learn More</a>
+            </div>
+        </section>
+        <!-- About Our Application -->
+        <section id="about">
+            <h2 data-i18n="about.title">About Our Application</h2>
+            <p data-i18n="about.p1">Smart Classroom is designed to create an easy accessible learning platform for students. Our mission is to break down barriers to education by providing a comprehensive digital environment that supports both students and educators.</p>
+            <p data-i18n="about.p2">With our platform, students can access learning materials anytime, anywhere, while educators can efficiently manage classes, track attendance, and provide personalized learning experiences. We believe that technology should enhance education, not complicate it.</p>
+            <p data-i18n="about.p3">Our application is built with accessibility in mind, ensuring that all students, regardless of their circumstances, can benefit from quality education. We are committed to continuous improvement and innovation to meet the evolving needs of the educational landscape.</p>
+        </section>
+        <!-- Demo Video Section -->
+        <section id="demo">
+            <h2 data-i18n="demo.title">About the App - Demo Video</h2>
+            <p data-i18n="demo.description">Watch our demo video to see how Smart Classroom works and how it can transform your educational experience.</p>
+            <div class="video-container">
+                <iframe 
+                    width="100%" 
+                    height="100%" 
+                    src="https://www.youtube.com/embed/08iCbJ_4rrc" 
+                    frameborder="0" 
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                    allowfullscreen>
+                </iframe>
+            </div>
+        </section>
+        <!-- Our Features Section -->
+        <section id="features">
+            <h2 data-i18n="features.title">Our Features</h2>
+            <div class="features-grid">
+                <div class="feature-card" id="recorded-classes">
+                    <h3><i class="fas fa-video"></i> <span data-i18n="features.recorded_classes.title">Recorded Classes</span></h3>
+                    <p data-i18n="features.recorded_classes.description">Access all your recorded lectures anytime. Never miss important content with our comprehensive class recording system.</p>
+                </div>
+                <div class="feature-card" id="recorded-notes">
+                    <h3><i class="fas fa-sticky-note"></i> <span data-i18n="features.recorded_notes.title">Recorded Notes</span></h3>
+                    <p data-i18n="features.recorded_notes.description">Automatically generated notes from lectures. Highlight important points and add your own annotations for better retention.</p>
+                </div>
+                <div class="feature-card" id="speech-to-text">
+                    <h3><i class="fas fa-microphone"></i> <span data-i18n="features.speech_to_text.title">Speech to Text</span></h3>
+                    <p data-i18n="features.speech_to_text.description">Convert lectures to text in real-time. Perfect for students with different learning preferences and accessibility needs.</p>
+                </div>
+                <div class="feature-card" id="attendance">
+                    <h3><i class="fas fa-map-marker-alt"></i> <span data-i18n="features.attendance.title">Online Attendance</span></h3>
+                    <p data-i18n="features.attendance.description">Mark attendance with location verification. Ensures students are present in class while maintaining accurate records.</p>
+                </div>
+                <div class="feature-card" id="timetable">
+                    <h3><i class="fas fa-calendar-alt"></i> <span data-i18n="features.timetable.title">AI Timetable Scheduler</span></h3>
+                    <p data-i18n="features.timetable.description">Intelligent scheduling that considers all constraints. Optimize class timings for both students and teachers.</p>
+                </div>
+                <div class="feature-card" id="rescheduling">
+                    <h3><i class="fas fa-sync-alt"></i> <span data-i18n="features.rescheduling.title">Rescheduling</span></h3>
+                    <p data-i18n="features.rescheduling.description">Flexible rescheduling based on constraints. Easily adjust timetables when unexpected changes occur.</p>
+                </div>
+            </div>
+        </section>
+        <!-- Contact Section -->
+        <section class="contact-section">
+            <h2 data-i18n="contact.title">Contact Us</h2>
+            <div class="contact-container">
+                <div class="contact-info">
+                    <h3 data-i18n="contact.info.title">Get in Touch</h3>
+                    <p data-i18n="contact.info.description">Have questions about Smart Classroom? We'd love to hear from you. Send us a message and we'll respond as soon as possible.</p>
+                    <div class="contact-item">
+                        <i class="fas fa-envelope"></i>
+                        <div>
+                            <h4 data-i18n="contact.info.email_title">Email</h4>
+                            <p>schedsix@gmail.com</p> <!-- Email remains untranslated -->
+                        </div>
+                    </div>
+                </div>
+                <div class="contact-form">
+                    <h3 data-i18n="contact.form.title">Send a Message</h3>
+                    <form id="contactForm">
+                        <div class="form-group">
+                            <label for="name" data-i18n="contact.form.name">Name</label>
+                            <input type="text" id="name" name="name" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="email" data-i18n="contact.form.email">Email</label>
+                            <input type="email" id="email" name="email" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="subject" data-i18n="contact.form.subject">Subject</label>
+                            <input type="text" id="subject" name="subject" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="message" data-i18n="contact.form.message">Message</label>
+                            <textarea id="message" name="message" required></textarea>
+                        </div>
+                        <button type="submit" class="btn" data-i18n="contact.form.submit">Send Message</button>
+                    </form>
+                </div>
+            </div>
+        </section>
+    </main>
+    <!-- Footer -->
+    <footer>
+        <div class="footer-content">
+            <p data-i18n="footer.text">Making education accessible to everyone.</p>
+            <div class="social-links">
+                <a href="#" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
+                <a href="#" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
+                <a href="#" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+                <a href="#" aria-label="LinkedIn"><i class="fab fa-linkedin-in"></i></a>
+            </div>
+        </div>
+    </footer>
+    <script>
+        // Translations object
+        const translations = {
+            en: {
+                title: "Smart Classroom - Revolutionizing Education",
+                nav: {
+                    logo: "Smart Classroom",
+                    login: "Login"
+                },
+                sidebar: {
+                    home: "Smart Classroom Homepage",
+                    about: "About Our Application",
+                    demo: "About the App - Demo Video",
+                    features: "Our Features",
+                    features: {
+                        recorded_classes: "Recorded Classes",
+                        recorded_notes: "Recorded Notes",
+                        speech_to_text: "Speech to Text",
+                        attendance: "Online Attendance with Location Verification",
+                        timetable: "AI Based Timetable Scheduler",
+                        rescheduling: "Rescheduling and Timetable Based on Constraints"
+                    },
+                    login: "Login"
+                },
+                hero: {
+                    title: "Smart Classroom",
+                    description: "Revolutionizing education through innovative technology and accessible learning platforms",
+                    button: "Learn More"
+                },
+                about: {
+                    title: "About Our Application",
+                    p1: "Smart Classroom is designed to create an easy accessible learning platform for students. Our mission is to break down barriers to education by providing a comprehensive digital environment that supports both students and educators.",
+                    p2: "With our platform, students can access learning materials anytime, anywhere, while educators can efficiently manage classes, track attendance, and provide personalized learning experiences. We believe that technology should enhance education, not complicate it.",
+                    p3: "Our application is built with accessibility in mind, ensuring that all students, regardless of their circumstances, can benefit from quality education. We are committed to continuous improvement and innovation to meet the evolving needs of the educational landscape."
+                },
+                demo: {
+                    title: "About the App - Demo Video",
+                    description: "Watch our demo video to see how Smart Classroom works and how it can transform your educational experience."
+                },
+                features: {
+                    title: "Our Features",
+                    recorded_classes: {
+                        title: "Recorded Classes",
+                        description: "Access all your recorded lectures anytime. Never miss important content with our comprehensive class recording system."
+                    },
+                    recorded_notes: {
+                        title: "Recorded Notes",
+                        description: "Automatically generated notes from lectures. Highlight important points and add your own annotations for better retention."
+                    },
+                    speech_to_text: {
+                        title: "Speech to Text",
+                        description: "Convert lectures to text in real-time. Perfect for students with different learning preferences and accessibility needs."
+                    },
+                    attendance: {
+                        title: "Online Attendance",
+                        description: "Mark attendance with location verification. Ensures students are present in class while maintaining accurate records."
+                    },
+                    timetable: {
+                        title: "AI Timetable Scheduler",
+                        description: "Intelligent scheduling that considers all constraints. Optimize class timings for both students and teachers."
+                    },
+                    rescheduling: {
+                        title: "Rescheduling",
+                        description: "Flexible rescheduling based on constraints. Easily adjust timetables when unexpected changes occur."
+                    }
+                },
+                contact: {
+                    title: "Contact Us",
+                    info: {
+                        title: "Get in Touch",
+                        description: "Have questions about Smart Classroom? We'd love to hear from you. Send us a message and we'll respond as soon as possible.",
+                        email_title: "Email"
+                    },
+                    form: {
+                        title: "Send a Message",
+                        name: "Name",
+                        email: "Email",
+                        subject: "Subject",
+                        message: "Message",
+                        submit: "Send Message"
+                    }
+                },
+                footer: {
+                    text: "Making education accessible to everyone."
+                }
+            },
+            hi: {
+                title: "स्मार्ट क्लासरूम - शिक्षा में क्रांति",
+                nav: {
+                    logo: "स्मार्ट क्लासरूम",
+                    login: "लॉगिन"
+                },
+                sidebar: {
+                    home: "स्मार्ट क्लासरूम होमपेज",
+                    about: "हमारे एप्लिकेशन के बारे में",
+                    demo: "एप्लिकेशन के बारे में - डेमो वीडियो",
+                    features: "हमारी विशेषताएं",
+                    features: {
+                        recorded_classes: "रिकॉर्डेड कक्षाएं",
+                        recorded_notes: "रिकॉर्डेड नोट्स",
+                        speech_to_text: "वाक् से पाठ",
+                        attendance: "स्थान सत्यापन के साथ ऑनलाइन उपस्थिति",
+                        timetable: "एआई आधारित समय सारणी",
+                        rescheduling: "बाधाओं के आधार पर पुनर्निर्धारण"
+                    },
+                    login: "लॉगिन"
+                },
+                hero: {
+                    title: "स्मार्ट क्लासरूम",
+                    description: "नवाचार और सुलभ शिक्षण मंचों के माध्यम से शिक्षा में क्रांति",
+                    button: "और जानें"
+                },
+                about: {
+                    title: "हमारे एप्लिकेशन के बारे में",
+                    p1: "स्मार्ट क्लासरूम छात्रों के लिए एक सुलभ शिक्षण मंच बनाने के लिए डिज़ाइन किया गया है। हमारा मिशन एक व्यापक डिजिटल वातावरण प्रदान करके शिक्षा में बाधाओं को तोड़ना है जो छात्रों और शिक्षकों दोनों को समर्थन देता है।",
+                    p2: "हमारे मंच के साथ, छात्र कभी भी, कहीं भी शिक्षण सामग्री तक पहुंच सकते हैं, जबकि शिक्षक कुशलतापूर्वक कक्षाओं का प्रबंधन, उपस्थिति ट्रैकिंग और व्यक्तिगत शिक्षण अनुभव प्रदान कर सकते हैं। हमारा मानना है कि तकनीक को शिक्षा को बढ़ाना चाहिए, न कि जटिल करना।",
+                    p3: "हमारा एप्लिकेशन सुलभता को ध्यान में रखकर बनाया गया है, यह सुनिश्चित करता है कि सभी छात्र, उनकी परिस्थितियों की परवाह किए बिना, गुणवत्तापूर्ण शिक्षा से लाभान्वित हो सकें। हम शिक्षा के बदलते परिदृश्य की जरूरतों को पूरा करने के लिए निरंतर सुधार और नवाचार के लिए प्रतिबद्ध हैं।"
+                },
+                demo: {
+                    title: "एप्लिकेशन के बारे में - डेमो वीडियो",
+                    description: "हमारा डेमो वीडियो देखें और जानें कि स्मार्ट क्लासरूम कैसे काम करता है और यह आपके शैक्षिक अनुभव को कैसे बदल सकता है।"
+                },
+                features: {
+                    title: "हमारी विशेषताएं",
+                    recorded_classes: {
+                        title: "रिकॉर्डेड कक्षाएं",
+                        description: "कभी भी अपनी रिकॉर्डेड व्याख्यानों तक पहुंचें। हमारे व्यापक कक्षा रिकॉर्डिंग सिस्टम के साथ महत्वपूर्ण सामग्री कभी न चूकें।"
+                    },
+                    recorded_notes: {
+                        title: "रिकॉर्डेड नोट्स",
+                        description: "व्याख्यानों से स्वचालित रूप से बनाए गए नोट्स। महत्वपूर्ण बिंदुओं को हाइलाइट करें और बेहतर रिटेंशन के लिए अपने स्वयं के एनोटेशन जोड़ें।"
+                    },
+                    speech_to_text: {
+                        title: "वाक् से पाठ",
+                        description: "व्याख्यानों को रीयल-टाइम में पाठ में बदलें। विभिन्न शिक्षण प्राथमिकताओं और सुलभता आवश्यकताओं वाले छात्रों के लिए उपयुक्त।"
+                    },
+                    attendance: {
+                        title: "ऑनलाइन उपस्थिति",
+                        description: "स्थान सत्यापन के साथ उपस्थिति दर्ज करें। यह सुनिश्चित करता है कि छात्र कक्षा में मौजूद हों और सटीक रिकॉर्ड बनाए रखे जाएं।"
+                    },
+                    timetable: {
+                        title: "एआई आधारित समय सारणी",
+                        description: "सभी बाधाओं को ध्यान में रखते हुए बुद्धिमान समयबद्धन। छात्रों और शिक्षकों दोनों के लिए कक्षा समय को अनुकूलित करें।"
+                    },
+                    rescheduling: {
+                        title: "पुनर्निर्धारण",
+                        description: "बाधाओं के आधार पर लचीला पुनर्निर्धारण। अप्रत्याशित परिवर्तनों के दौरान समय सारणी को आसानी से समायोजित करें।"
+                    }
+                },
+                contact: {
+                    title: "हमसे संपर्क करें",
+                    info: {
+                        title: "संपर्क में रहें",
+                        description: "स्मार्ट क्लासरूम के बारे में प्रश्न हैं? हमें आपसे सुनना अच्छा लगेगा। हमें एक संदेश भेजें और हम जल्द से जल्द जवाब देंगे।",
+                        email_title: "ईमेल"
+                    },
+                    form: {
+                        title: "संदेश भेजें",
+                        name: "नाम",
+                        email: "ईमेल",
+                        subject: "विषय",
+                        message: "संदेश",
+                        submit: "संदेश भेजें"
+                    }
+                },
+                footer: {
+                    text: "सभी के लिए शिक्षा को सुलभ बनाना।"
+                }
+            },
+            pa: {
+                title: "ਸਮਾਰਟ ਕਲਾਸਰੂਮ - ਸਿੱਖਿਆ ਵਿੱਚ ਕ੍ਰਾਂਤੀ",
+                nav: {
+                    logo: "ਸਮਾਰਟ ਕਲਾਸਰੂਮ",
+                    login: "ਲੌਗਇਨ"
+                },
+                sidebar: {
+                    home: "ਸਮਾਰਟ ਕਲਾਸਰੂਮ ਹੋਮਪੇਜ",
+                    about: "ਸਾਡੀ ਐਪਲੀਕੇਸ਼ਨ ਬਾਰੇ",
+                    demo: "ਐਪ ਬਾਰੇ - ਡੈਮੋ ਵੀਡੀਓ",
+                    features: "ਸਾਡੀਆਂ ਵਿਸ਼ੇਸ਼ਤਾਵਾਂ",
+                    features: {
+                        recorded_classes: "ਰਿਕਾਰਡ ਕੀਤੀਆਂ ਕਲਾਸਾਂ",
+                        recorded_notes: "ਰਿਕਾਰਡ ਕੀਤੇ ਨੋਟਸ",
+                        speech_to_text: "ਬੋਲੀ ਤੋਂ ਟੈਕਸਟ",
+                        attendance: "ਸਥਾਨ ਪ੍ਰਮਾਣੀਕਰਨ ਨਾਲ ਆਨਲਾਈਨ ਹਾਜ਼ਰੀ",
+                        timetable: "ਏਆਈ ਅਧਾਰਿਤ ਸਮਾਂ-ਸਾਰਣੀ",
+                        rescheduling: "ਰੁਕਾਵਟਾਂ ਦੇ ਅਧਾਰ ਤੇ ਮੁੜ-ਸਮਾਂ-ਨਿਰਧਾਰਣ"
+                    },
+                    login: "ਲੌਗਇਨ"
+                },
+                hero: {
+                    title: "ਸਮਾਰਟ ਕਲਾਸਰੂਮ",
+                    description: "ਨਵੀਨਤਾਕਾਰੀ ਤਕਨਾਲੋਜੀ ਅਤੇ ਸੁਲੱਭ ਸਿੱਖਣ ਪਲੇਟਫਾਰਮਾਂ ਦੁਆਰਾ ਸਿੱਖਿਆ ਵਿੱਚ ਕ੍ਰਾਂਤੀ",
+                    button: "ਹੋਰ ਜਾਣੋ"
+                },
+                about: {
+                    title: "ਸਾਡੀ ਐਪਲੀਕੇਸ਼ਨ ਬਾਰੇ",
+                    p1: "ਸਮਾਰਟ ਕਲਾਸਰੂਮ ਵਿਦਿਆਰਥੀਆਂ ਲਈ ਇੱਕ ਸੁਲੱਭ ਸਿੱਖਣ ਪਲੇਟਫਾਰਮ ਬਣਾਉਣ ਲਈ ਤਿਆਰ ਕੀਤਾ ਗਿਆ ਹੈ। ਸਾਡਾ ਮਿਸ਼ਨ ਇੱਕ ਵਿਆਪਕ ਡਿਜੀਟਲ ਵਾਤਾਵਰਣ ਪ੍ਰਦਾਨ ਕਰਕੇ ਸਿੱਖਿਆ ਦੀਆਂ ਰੁਕਾਵਟਾਂ ਨੂੰ ਤੋੜਨਾ ਹੈ ਜੋ ਵਿਦਿਆਰਥੀਆਂ ਅਤੇ ਅਧਿਆਪਕਾਂ ਦੋਵਾਂ ਨੂੰ ਸਮਰਥਨ ਦਿੰਦਾ ਹੈ।",
+                    p2: "ਸਾਡੇ ਪਲੇਟਫਾਰਮ ਨਾਲ, ਵਿਦਿਆਰਥੀ ਕਿਸੇ ਵੀ ਸਮੇਂ, ਕਿਤੇ ਵੀ ਸਿੱਖਣ ਸਮੱਗਰੀ ਤੱਕ ਪਹੁੰਚ ਸਕਦੇ ਹਨ, ਜਦਕਿ ਅਧਿਆਪਕ ਕੁਸ਼ਲਤਾਪੂਰਵਕ ਕਲਾਸਾਂ ਦਾ ਪ੍ਰਬੰਧਨ, ਹਾਜ਼ਰੀ ਟਰੈਕਿੰਗ ਅਤੇ ਵਿਅਕਤੀਗਤ ਸਿੱਖਣ ਅਨੁਭਵ ਪ੍ਰਦਾਨ ਕਰ ਸਕਦੇ ਹਨ। ਸਾਡਾ ਮੰਨਣਾ ਹੈ ਕਿ ਤਕਨਾਲੋਜੀ ਨੂੰ ਸਿੱਖਿਆ ਨੂੰ ਵਧਾਉਣਾ ਚਾਹੀਦਾ ਹੈ, ਨਾ ਕਿ ਗੁੰਝਲਦਾਰ ਬਣਾਉਣਾ।",
+                    p3: "ਸਾਡੀ ਐਪਲੀਕੇਸ਼ਨ ਸੁਲੱਭਤਾ ਨੂੰ ਧਿਆਨ ਵਿੱਚ ਰੱਖ ਕੇ ਬਣਾਈ ਗਈ ਹੈ, ਇਹ ਸੁਨਿਸ਼ਚਿਤ ਕਰਦੀ ਹੈ ਕਿ ਸਾਰੇ ਵਿਦਿਆਰਥੀ, ਉਹਨਾਂ ਦੀਆਂ ਸਥਿਤੀਆਂ ਦੀ ਪਰਵਾਹ ਕੀਤੇ ਬਿਨਾਂ, ਗੁਣਵੱਤਾਯੁਕਤ ਸਿੱਖਿਆ ਤੋਂ ਲਾਭ ਉਠਾ ਸਕਣ। ਅਸੀਂ ਸਿੱਖਿਆ ਦੇ ਬਦਲਦੇ ਲੈਂਡਸਕੇਪ ਦੀਆਂ ਜ਼ਰੂਰਤਾਂ ਨੂੰ ਪੂਰਾ ਕਰਨ ਲਈ ਨਿਰੰਤਰ ਸੁਧਾਰ ਅਤੇ ਨਵੀਨਤਾ ਲਈ ਵਚਨਬੱਧ ਹਾਂ।"
+                },
+                demo: {
+                    title: "ਐਪ ਬਾਰੇ - ਡੈਮੋ ਵੀਡੀਓ",
+                    description: "ਸਾਡਾ ਡੈਮੋ ਵੀਡੀਓ ਵੇਖੋ ਅਤੇ ਜਾਣੋ ਕਿ ਸਮਾਰਟ ਕਲਾਸਰੂਮ ਕਿਵੇਂ ਕੰਮ ਕਰਦਾ ਹੈ ਅਤੇ ਇਹ ਤੁਹਾਡੇ ਸਿੱਖਿਆ ਅਨੁਭਵ ਨੂੰ ਕਿਵੇਂ ਬਦਲ ਸਕਦਾ ਹੈ।"
+                },
+                features: {
+                    title: "ਸਾਡੀਆਂ ਵਿਸ਼ੇਸ਼ਤਾਵਾਂ",
+                    recorded_classes: {
+                        title: "ਰਿਕਾਰਡ ਕੀਤੀਆਂ ਕਲਾਸਾਂ",
+                        description: "ਕਿਸੇ ਵੀ ਸਮੇਂ ਆਪਣੀਆਂ ਰਿਕਾਰਡ ਕੀਤੀਆਂ ਲੈਕਚਰਾਂ ਤੱਕ ਪਹੁੰਚ ਕਰੋ। ਸਾਡੇ ਵਿਆਪਕ ਕਲਾਸ ਰਿਕਾਰਡਿੰਗ ਸਿਸਟਮ ਨਾਲ ਮਹੱਤਵਪੂਰਨ ਸਮੱਗਰੀ ਕਦੇ ਨਾ ਗੁਆਓ।"
+                    },
+                    recorded_notes: {
+                        title: "ਰਿਕਾਰਡ ਕੀਤੇ ਨੋਟਸ",
+                        description: "ਲੈਕਚਰਾਂ ਤੋਂ ਸਵੈਚਲਿਤ ਤੌਰ 'ਤੇ ਬਣਾਏ ਗਏ ਨੋਟਸ। ਮਹੱਤਵਪੂਰਨ ਨੁਕਤਿਆਂ ਨੂੰ ਹਾਈਲਾਈਟ ਕਰੋ ਅਤੇ ਬਿਹਤਰ ਰਿਟੈਂਸ਼ਨ ਲਈ ਆਪਣੇ ਖੁਦ ਦੇ ਐਨੋਟੇਸ਼ਨ ਜੋੜੋ।"
+                    },
+                    speech_to_text: {
+                        title: "ਬੋਲੀ ਤੋਂ ਟੈਕਸਟ",
+                        description: "ਲੈਕਚਰਾਂ ਨੂੰ ਰੀਅਲ-ਟਾਈਮ ਵਿੱਚ ਟੈਕਸਟ ਵਿੱਚ ਬਦਲੋ। ਵੱਖ-ਵੱਖ ਸਿੱਖਣ ਪਸੰਦਾਂ ਅਤੇ ਸੁਲੱਭਤਾ ਜ਼ਰੂਰਤਾਂ ਵਾਲੇ ਵਿਦਿਆਰਥੀਆਂ ਲਈ ਸੰਪੂਰਨ।"
+                    },
+                    attendance: {
+                        title: "ਆਨਲਾਈਨ ਹਾਜ਼ਰੀ",
+                        description: "ਸਥਾਨ ਪ੍ਰਮਾਣੀਕਰਨ ਨਾਲ ਹਾਜ਼ਰੀ ਦਰਜ ਕਰੋ। ਇਹ ਸੁਨਿਸ਼ਚਿਤ ਕਰਦਾ ਹੈ ਕਿ ਵਿਦਿਆਰਥੀ ਕਲਾਸ ਵਿੱਚ ਮੌਜੂਦ ਹਨ ਅਤੇ ਸਹੀ ਰਿਕਾਰਡ ਬਣਾਈ ਰੱਖੇ ਜਾਣ।"
+                    },
+                    timetable: {
+                        title: "ਏਆਈ ਅਧਾਰਿਤ ਸਮਾਂ-ਸਾਰਣੀ",
+                        description: "ਸਾਰੀਆਂ ਰੁਕਾਵਟਾਂ ਨੂੰ ਧਿਆਨ ਵਿੱਚ ਰੱਖਦੇ ਹੋਏ ਬੁੱਧੀਮਾਨ ਸਮਾਂ-ਨਿਰਧਾਰਣ। ਵਿਦਿਆਰਥੀਆਂ ਅਤੇ ਅਧਿਆਪਕਾਂ ਦੋਵਾਂ ਲਈ ਕਲਾਸ ਸਮਾਂ ਅਨੁਕੂਲ ਬਣਾਓ।"
+                    },
+                    rescheduling: {
+                        title: "ਮੁੜ-ਸਮਾਂ-ਨਿਰਧਾਰਣ",
+                        description: "ਰੁਕਾਵਟਾਂ ਦੇ ਅਧਾਰ ਤੇ ਲਚਕਦਾਰ ਮੁੜ-ਸਮਾਂ-ਨਿਰਧਾਰਣ। ਅਚਾਨਕ ਤਬਦੀਲੀਆਂ ਦੌਰਾਨ ਸਮਾਂ-ਸਾਰਣੀ ਨੂੰ ਆਸਾਨੀ ਨਾਲ ਅਨੁਕੂਲ ਕਰੋ।"
+                    }
+                },
+                contact: {
+                    title: "ਸਾਡੇ ਨਾਲ ਸੰਪਰਕ ਕਰੋ",
+                    info: {
+                        title: "ਸੰਪਰਕ ਵਿੱਚ ਰਹੋ",
+                        description: "ਸਮਾਰਟ ਕਲਾਸਰੂਮ ਬਾਰੇ ਸਵਾਲ ਹਨ? ਅਸੀਂ ਤੁਹਾਡੇ ਤੋਂ ਸੁਣਨਾ ਪਸੰਦ ਕਰਾਂਗੇ। ਸਾਨੂੰ ਇੱਕ ਸੁਨੇਹਾ ਭੇਜੋ ਅਤੇ ਅਸੀਂ ਜਲਦੀ ਤੋਂ ਜਲਦੀ ਜਵਾਬ ਦੇਵਾਂਗੇ।",
+                        email_title: "ਈਮੇਲ"
+                    },
+                    form: {
+                        title: "ਸੁਨੇਹਾ ਭੇਜੋ",
+                        name: "ਨਾਮ",
+                        email: "ਈਮੇਲ",
+                        subject: "ਵਿਸ਼ਾ",
+                        message: "ਸੁਨੇਹਾ",
+                        submit: "ਸੁਨੇਹਾ ਭੇਜੋ"
+                    }
+                },
+                footer: {
+                    text: "ਸਾਰਿਆਂ ਲਈ ਸਿੱਖਿਆ ਨੂੰ ਸੁਲੱਭ ਬਣਾਉਣਾ।"
+                }
+            }
+        };
+
+        // Function to update language
+        function updateLanguage(lang) {
+            document.documentElement.lang = lang;
+            document.querySelectorAll('[data-i18n]').forEach(element => {
+                const key = element.getAttribute('data-i18n');
+                const keys = key.split('.');
+                let translation = translations[lang];
+                for (const k of keys) {
+                    translation = translation[k];
+                    if (!translation) break;
+                }
+                if (translation) {
+                    element.textContent = translation;
+                }
+            });
+            document.getElementById('language-selector').value = lang;
+            localStorage.setItem('language', lang);
+        }
+
+        // Initialize language
+        const savedLanguage = localStorage.getItem('language') || 'en';
+        updateLanguage(savedLanguage);
+
+        // Language selector event listener
+        document.getElementById('language-selector').addEventListener('change', function() {
+            updateLanguage(this.value);
+        });
+
+        // Loading Screen
+        window.addEventListener('load', function() {
+            setTimeout(function() {
+                document.getElementById('loader').style.opacity = '0';
+                document.getElementById('loader').style.visibility = 'hidden';
+                document.querySelectorAll('section').forEach(section => {
+                    section.classList.add('visible');
+                });
+                setTimeout(() => {
+                    document.querySelectorAll('.feature-card').forEach(card => {
+                        card.classList.add('visible');
+                    });
+                }, 300);
+            }, 1000);
+        });
+
+        // Progress Bar
+        window.addEventListener('scroll', function() {
+            const scrollPosition = window.scrollY;
+            const documentHeight = document.documentElement.scrollHeight - window.innerHeight;
+            const scrollPercentage = documentHeight > 0 ? (scrollPosition / documentHeight) * 100 : 0;
+            document.getElementById('progressBar').style.width = scrollPercentage + '%';
+        });
+
+        // Back to Top Button
+        const backToTopButton = document.getElementById('backToTop');
+        window.addEventListener('scroll', function() {
+            if (window.scrollY > 400) {
+                backToTopButton.classList.add('visible');
+            } else {
+                backToTopButton.classList.remove('visible');
+            }
+        });
+        backToTopButton.addEventListener('click', function() {
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        });
+
+        // Hamburger Menu Toggle
+        const hamburger = document.getElementById('hamburger');
+        const sidebar = document.getElementById('sidebar');
+        hamburger.addEventListener('click', function() {
+            hamburger.classList.toggle('active');
+            sidebar.classList.toggle('active');
+        });
+
+        // Features Submenu Toggle
+        const featuresToggle = document.getElementById('features-toggle');
+        const featuresSubmenu = document.getElementById('features-submenu');
+        featuresToggle.addEventListener('click', function() {
+            featuresToggle.classList.toggle('active');
+            featuresSubmenu.classList.toggle('active');
+        });
+
+        // Sidebar Navigation
+        document.querySelectorAll('.sidebar-item[data-target]').forEach(item => {
+            item.addEventListener('click', function(e) {
+                e.preventDefault();
+                const target = this.getAttribute('data-target');
+                const element = document.getElementById(target);
+                if (element) {
+                    window.scrollTo({
+                        top: element.offsetTop - 80,
+                        behavior: 'smooth'
+                    });
+                    hamburger.classList.remove('active');
+                    sidebar.classList.remove('active');
+                }
+            });
+        });
+
+        // Feature Sub-item Navigation
+        document.querySelectorAll('.sub-item').forEach(item => {
+            item.addEventListener('click', function(e) {
+                e.preventDefault();
+                const feature = this.getAttribute('data-feature');
+                const featuresSection = document.getElementById('features');
+                window.scrollTo({
+                    top: featuresSection.offsetTop - 80,
+                    behavior: 'smooth'
+                });
+                hamburger.classList.remove('active');
+                sidebar.classList.remove('active');
+                featuresToggle.classList.remove('active');
+                featuresSubmenu.classList.remove('active');
+                setTimeout(() => {
+                    document.querySelectorAll('.feature-card').forEach(card => {
+                        card.style.borderLeft = 'none';
+                    });
+                    const featureCard = document.getElementById(feature);
+                    if (featureCard) {
+                        featureCard.style.borderLeft = '4px solid var(--accent-green)';
+                        featureCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }
+                }, 500);
+            });
+        });
+
+        // Smooth scrolling for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function(e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    window.scrollTo({
+                        top: target.offsetTop - 80,
+                        behavior: 'smooth'
+                    });
+                }
+            });
+        });
+
+        // Intersection Observer for animations
+        const observerOptions = {
+            root: null,
+            rootMargin: '0px',
+            threshold: 0.1
+        };
+        const observer = new IntersectionObserver(function(entries) {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                }
+            });
+        }, observerOptions);
+        document.querySelectorAll('section').forEach(section => {
+            observer.observe(section);
+        });
+        document.querySelectorAll('.feature-card').forEach(card => {
+            observer.observe(card);
+        });
+
+        // Contact Form Submission
+        document.getElementById('contactForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const selectedLang = document.getElementById('language-selector').value;
+            const submitMessage = translations[selectedLang].contact.form.submit || 'Form submitted!';
+            alert(submitMessage + ' This is a placeholder for actual form submission logic.');
+        });
+    </script>
+</body>
+</html>

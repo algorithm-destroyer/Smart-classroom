@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Classroom Settings</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* General Styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        :root {
+            --primary-blue: #0A1B4F;
+            --secondary-blue: #1C3373;
+            --accent-green: #2ecc71;
+            --text-dark: #333;
+            --text-light: #f4f7fa;
+            --bg-light: #f8faff;
+            --white: #ffffff;
+            --grey-text: #6e7a8e;
+            --shadow-light: rgba(0, 0, 0, 0.08);
+            --shadow-medium: rgba(0, 0, 0, 0.15);
+            --transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+
+        body {
+            background: linear-gradient(135deg, #e0f2f7, #c7e8f0);
+            min-height: 100vh;
+            color: var(--text-dark);
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* Abstract Shapes for Background */
+        body::before, body::after {
+            content: '';
+            position: absolute;
+            background-repeat: no-repeat;
+            opacity: 0.1;
+            z-index: -1;
+            will-change: transform;
+        }
+        body::before {
+            width: 300px;
+            height: 300px;
+            top: -50px;
+            left: -50px;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'%3E%3Cdefs%3E%3ClinearGradient id='a' x1='0%' y1='0%' x2='100%' y2='100%'%3E%3Cstop offset='0%' stop-color='%231C3373'/%3E%3Cstop offset='100%' stop-color='%230A1B4F'/%3E%3C/linearGradient%3E%3C/defs%3E%3Ccircle cx='100' cy='100' r='90' fill='url(%23a)'/%3E%3C/svg%3E");
+            transform: rotate(30deg);
+            animation: moveShape1 10s infinite alternate;
+        }
+        body::after {
+            width: 250px;
+            height: 250px;
+            bottom: -70px;
+            right: -70px;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'%3E%3Cdefs%3E%3ClinearGradient id='a' x1='0%' y1='0%' x2='100%' y2='100%'%3E%3Cstop offset='0%' stop-color='%232ecc71'/%3E%3Cstop offset='100%' stop-color='%231C3373'/%3E%3C/linearGradient%3E%3C/defs%3E%3Cpolygon points='100,0 200,75 160,200 40,200 0,75' fill='url(%23a)'/%3E%3C/svg%3E");
+            transform: rotate(-45deg);
+            animation: moveShape2 12s infinite alternate-reverse;
+        }
+        @keyframes moveShape1 {
+            from { transform: translate(-50px, -50px) rotate(30deg); }
+            to { transform: translate(50px, 50px) rotate(60deg); }
+        }
+        @keyframes moveShape2 {
+            from { transform: translate(70px, 70px) rotate(-45deg); }
+            to { transform: translate(-70px, -70px) rotate(-15deg); }
+        }
+
+        /* Sidebar */
+        .sidebar {
+            position: fixed;
+            top: 0;
+            right: -300px;
+            width: 300px;
+            height: 100vh;
+            background: var(--secondary-blue);
+            transition: var(--transition);
+            z-index: 1000;
+            padding-top: 70px;
+            box-shadow: -2px 0 10px var(--shadow-medium);
+        }
+        .sidebar.active {
+            right: 0;
+        }
+        .sidebar-menu {
+            padding: 1.5rem 0;
+        }
+        .sidebar-item {
+            padding: 1rem 1.5rem;
+            color: var(--white);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            text-decoration: none;
+            position: relative;
+            overflow: hidden;
+            transition: var(--transition);
+            animation: slideIn 0.5s ease-out forwards;
+        }
+        .sidebar-item:nth-child(2) { animation-delay: 0.1s; }
+        .sidebar-item:nth-child(3) { animation-delay: 0.2s; }
+        .sidebar-item:nth-child(4) { animation-delay: 0.3s; }
+        .sidebar-item:nth-child(5) { animation-delay: 0.4s; }
+        .sidebar-item:nth-child(6) { animation-delay: 0.5s; }
+        .sidebar-item:nth-child(7) { animation-delay: 0.6s; }
+        .sidebar-item:nth-child(8) { animation-delay: 0.7s; }
+        .sidebar-item:nth-child(9) { animation-delay: 0.8s; }
+        @keyframes slideIn {
+            from { transform: translateX(50px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        .sidebar-item:hover {
+            background: var(--accent-green);
+            transform: translateX(5px);
+        }
+        .sidebar-item.active {
+            background: var(--accent-green);
+        }
+        .sidebar-item i {
+            color: var(--white);
+            transition: var(--transition);
+        }
+        .sidebar-item:hover i {
+            transform: scale(1.2);
+        }
+        .closebtn {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            font-size: 2rem;
+            color: var(--white);
+            text-decoration: none;
+            transition: var(--transition);
+        }
+        .closebtn:hover {
+            color: var(--accent-green);
+            transform: rotate(90deg);
+        }
+
+        /* Hamburger Button */
+        .openbtn {
+            font-size: 1.5rem;
+            cursor: pointer;
+            background: var(--primary-blue);
+            color: var(--white);
+            padding: 0.5rem;
+            border: none;
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            z-index: 1001;
+            border-radius: 0.5rem;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            box-shadow: 0 2px 8px var(--shadow-medium);
+        }
+        .openbtn:hover {
+            background: var(--accent-green);
+            transform: scale(1.1);
+            box-shadow: 0 4px 12px var(--shadow-medium);
+        }
+        .openbtn.active {
+            background: var(--accent-green);
+        }
+
+        /* Main Content */
+        .main-content {
+            transition: margin-right 0.5s;
+            padding: 3rem 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .container {
+            max-width: 600px;
+            margin: 1.5rem auto;
+            background: var(--white);
+            padding: 2rem;
+            border-radius: 1rem;
+            box-shadow: 0 0.5rem 1.5rem var(--shadow-medium);
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeInUp 0.8s ease-out forwards;
+        }
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        h1 {
+            color: var(--primary-blue);
+            text-align: center;
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            position: relative;
+            text-transform: uppercase;
+            letter-spacing: 0.1rem;
+        }
+        h1::after {
+            content: '';
+            position: absolute;
+            bottom: -0.5rem;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100px;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary-blue), var(--accent-green));
+            border-radius: 2px;
+        }
+        p {
+            text-align: center;
+            color: var(--grey-text);
+            margin-bottom: 1.5rem;
+            font-size: 1rem;
+        }
+
+        /* Settings Sections */
+        .settings-section {
+            margin-bottom: 2rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 1px solid rgba(192, 192, 192, 0.3);
+            animation: fadeIn 0.8s ease-out;
+        }
+        .settings-section:last-child {
+            border-bottom: none;
+        }
+        .settings-section h3 {
+            color: var(--primary-blue);
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .settings-section h3 i {
+            color: var(--accent-green);
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+
+        /* Setting Items */
+        .setting-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+            padding: 0.5rem;
+            border-radius: 0.5rem;
+            transition: var(--transition);
+        }
+        .setting-item:hover {
+            background: var(--bg-light);
+            transform: translateX(5px);
+        }
+        .setting-label {
+            color: var(--text-dark);
+            font-weight: 600;
+            font-size: 1rem;
+        }
+        .setting-control {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        /* Zoom Slider */
+        .zoom-slider {
+            width: 200px;
+            height: 6px;
+            background: #ddd;
+            border-radius: 3px;
+            outline: none;
+            transition: var(--transition);
+        }
+        .zoom-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            background: var(--accent-green);
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 2px 6px var(--shadow-medium);
+            transition: var(--transition);
+        }
+        .zoom-slider::-webkit-slider-thumb:hover {
+            transform: scale(1.2);
+            background: var(--primary-blue);
+        }
+        .zoom-value {
+            min-width: 50px;
+            text-align: center;
+            color: var(--grey-text);
+            font-size: 0.9rem;
+            background: var(--bg-light);
+            padding: 0.3rem 0.6rem;
+            border-radius: 0.3rem;
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05rem;
+            transition: var(--transition);
+            box-shadow: 0 2px 8px var(--shadow-light);
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary-blue), var(--accent-green));
+            color: var(--white);
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px var(--shadow-medium);
+        }
+        .btn-danger {
+            background: #f44336;
+            color: var(--white);
+        }
+        .btn-danger:hover {
+            background: #d32f2f;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px var(--shadow-medium);
+        }
+        .btn-secondary {
+            background: var(--bg-light);
+            color: var(--text-dark);
+        }
+        .btn-secondary:hover {
+            background: #e1e1e1;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px var(--shadow-light);
+        }
+        .action-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            flex-wrap: wrap;
+            margin-top: 1.5rem;
+        }
+
+        /* Toggle Switch */
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 24px;
+        }
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: #ccc;
+            transition: var(--transition);
+            border-radius: 24px;
+        }
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 16px;
+            width: 16px;
+            left: 4px;
+            bottom: 4px;
+            background: var(--white);
+            transition: var(--transition);
+            border-radius: 50%;
+        }
+        input:checked + .slider {
+            background: var(--accent-green);
+        }
+        input:checked + .slider:before {
+            transform: translateX(26px);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .main-content {
+                padding: 1.5rem;
+            }
+            .container {
+                padding: 1.5rem;
+            }
+            h1 {
+                font-size: 1.75rem;
+            }
+            .zoom-slider {
+                width: 150px;
+            }
+            .openbtn {
+                width: 35px;
+                height: 35px;
+                font-size: 1.2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Hamburger Button -->
+    <button class="openbtn" id="openbtn" aria-label="Open menu" aria-expanded="false">
+        <i class="fas fa-bars"></i>
+    </button>
+
+    <!-- Sidebar -->
+    <div id="mySidebar" class="sidebar" role="navigation" aria-label="Main navigation">
+        <div class="sidebar-menu">
+            <a href="javascript:void(0)" class="closebtn" onclick="closeNav()" aria-label="Close menu">&times;</a>
+            <a href="home" class="sidebar-item">
+                <span>Home</span>
+                <i class="fas fa-home"></i>
+            </a>
+            <a href="attendance.html" class="sidebar-item">
+                <span>Attendance</span>
+                <i class="fas fa-user-check"></i>
+            </a>
+            <a href="assignment.html" class="sidebar-item">
+                <span>Assignment</span>
+                <i class="fas fa-calendar-alt"></i>
+            </a>
+            <a href="recorded_class.html" class="sidebar-item">
+                <span>Recorded Classes</span>
+                <i class="fas fa-video"></i>
+            </a>
+            <a href="notes.html" class="sidebar-item">
+                <span>Notes</span>
+                <i class="fas fa-sticky-note"></i>
+            </a>
+            <a href="notices.html" class="sidebar-item">
+                <span>Notices</span>
+                <i class="fas fa-bell"></i>
+            </a>
+            <a href="profile.html" class="sidebar-item">
+                <span>Your Profile</span>
+                <i class="fas fa-user"></i>
+            </a>
+            <a href="academic_profile.html" class="sidebar-item">
+                <span>Academic Profile</span>
+                <i class="fas fa-graduation-cap"></i>
+            </a>
+            <a href="settings.html" class="sidebar-item active">
+                <span>Settings</span>
+                <i class="fas fa-cog"></i>
+            </a>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div id="main" class="main-content">
+        <div class="container">
+            <h1>Settings</h1>
+            <p>Customize your Smart Classroom experience</p>
+
+            <div class="settings-section">
+                <h3><i class="fas fa-display"></i> Display Settings</h3>
+                <div class="setting-item">
+                    <div class="setting-label">Page Zoom</div>
+                    <div class="setting-control">
+                        <button class="btn btn-secondary" onclick="changeZoom(-10)" aria-label="Decrease zoom">-</button>
+                        <input type="range" min="50" max="150" value="100" class="zoom-slider" id="zoomSlider" oninput="updateZoom(this.value)" aria-label="Zoom level">
+                        <div class="zoom-value" id="zoomValue">100%</div>
+                        <button class="btn btn-secondary" onclick="changeZoom(10)" aria-label="Increase zoom">+</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="settings-section">
+                <h3><i class="fas fa-user-cog"></i> Account Settings</h3>
+                <div class="setting-item">
+                    <div class="setting-label">Change Password</div>
+                    <div class="setting-control">
+                        <button class="btn btn-primary" onclick="changePassword()">Change</button>
+                    </div>
+                </div>
+                <div class="setting-item">
+                    <div class="setting-label">Email Notifications</div>
+                    <div class="setting-control">
+                        <label class="switch">
+                            <input type="checkbox" id="emailToggle" checked aria-label="Toggle email notifications">
+                            <span class="slider round"></span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="settings-section">
+                <h3><i class="fas fa-user-shield"></i> Account Actions</h3>
+                <div class="action-buttons">
+                    <button class="btn btn-danger" onclick="deleteAccount()">Delete Account</button>
+                    <button class="btn btn-secondary" onclick="signOut()">Sign Out</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function openNav() {
+            const sidebar = document.getElementById("mySidebar");
+            const main = document.getElementById("main");
+            const openbtn = document.getElementById("openbtn");
+            sidebar.classList.add('active');
+            main.style.marginRight = "300px";
+            openbtn.classList.add('active');
+            openbtn.setAttribute('aria-expanded', 'true');
+        }
+
+        function closeNav() {
+            const sidebar = document.getElementById("mySidebar");
+            const main = document.getElementById("main");
+            const openbtn = document.getElementById("openbtn");
+            sidebar.classList.remove('active');
+            main.style.marginRight = "0";
+            openbtn.classList.remove('active');
+            openbtn.setAttribute('aria-expanded', 'false');
+        }
+
+        function updateZoom(value) {
+            document.getElementById('zoomValue').textContent = value + '%';
+            document.body.style.zoom = value / 100;
+        }
+
+        function changeZoom(delta) {
+            const slider = document.getElementById('zoomSlider');
+            const newValue = parseInt(slider.value) + delta;
+            if (newValue >= 50 && newValue <= 150) {
+                slider.value = newValue;
+                updateZoom(newValue);
+            }
+        }
+
+        function changePassword() {
+            window.location.href = "/forgot";
+        }
+
+        function signOut() {
+            if (confirm("Are you sure you want to sign out?")) {
+                fetch('/api/sign_out', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        alert(data.message);
+                        window.location.href = "/";
+                    } else {
+                        alert(data.message);
+                    }
+                })
+                .catch(error => {
+                    alert("An error occurred while signing out: " + error.message);
+                });
+            }
+        }
+
+        function deleteAccount() {
+            if (confirm("Are you sure you want to delete your account? This action cannot be undone.")) {
+                fetch('/api/delete_account', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        alert(data.message);
+                        window.location.href = "/";
+                    } else {
+                        alert(data.message);
+                    }
+                })
+                .catch(error => {
+                    alert("An error occurred while deleting account: " + error.message);
+                });
+            }
+        }
+
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', function() {
+            const openbtn = document.getElementById('openbtn');
+            openbtn.addEventListener('click', openNav);
+            openbtn.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    openNav();
+                }
+            });
+        });
+    </script>
+</body>
+</html>

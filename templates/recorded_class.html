@@ -1,0 +1,1178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recorded Classes</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* [Original CSS unchanged, included for completeness] */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        :root {
+            --primary-blue: #0A1B4F;
+            --secondary-blue: #1C3373;
+            --accent-green: #2ecc71;
+            --text-dark: #333;
+            --text-light: #f4f7fa;
+            --bg-light: #f8faff;
+            --white: #ffffff;
+            --grey-text: #6e7a8e;
+            --shadow-light: rgba(0, 0, 0, 0.08);
+            --shadow-medium: rgba(0, 0, 0, 0.15);
+            --transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+
+        body {
+            background: linear-gradient(135deg, #e0f2f7, #c7e8f0);
+            min-height: 100vh;
+            color: var(--text-dark);
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* Abstract Shapes */
+        body::before, body::after {
+            content: '';
+            position: absolute;
+            background-repeat: no-repeat;
+            opacity: 0.1;
+            z-index: -1;
+            will-change: transform;
+        }
+        body::before {
+            width: 300px;
+            height: 300px;
+            top: -50px;
+            left: -50px;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'%3E%3Cdefs%3E%3ClinearGradient id='a' x1='0%' y1='0%' x2='100%' y2='100%'%3E%3Cstop offset='0%' stop-color='%231C3373'/%3E%3Cstop offset='100%' stop-color='%230A1B4F'/%3E%3C/linearGradient%3E%3C/defs%3E%3Ccircle cx='100' cy='100' r='90' fill='url(%23a)'/%3E%3C/svg%3E");
+            transform: rotate(30deg);
+            animation: moveShape1 10s infinite alternate;
+        }
+        body::after {
+            width: 250px;
+            height: 250px;
+            bottom: -70px;
+            right: -70px;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'%3E%3Cdefs%3E%3ClinearGradient id='a' x1='0%' y1='0%' x2='100%' y2='100%'%3E%3Cstop offset='0%' stop-color='%232ecc71'/%3E%3Cstop offset='100%' stop-color='%231C3373'/%3E%3C/linearGradient%3E%3C/defs%3E%3Cpolygon points='100,0 200,75 160,200 40,200 0,75' fill='url(%23a)'/%3E%3C/svg%3E");
+            transform: rotate(-45deg);
+            animation: moveShape2 12s infinite alternate-reverse;
+        }
+        @keyframes moveShape1 {
+            from { transform: translate(-50px, -50px) rotate(30deg); }
+            to { transform: translate(50px, 50px) rotate(60deg); }
+        }
+        @keyframes moveShape2 {
+            from { transform: translate(70px, 70px) rotate(-45deg); }
+            to { transform: translate(-70px, -70px) rotate(-15deg); }
+        }
+
+        /* Loading Screen */
+        .loader-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: var(--primary-blue);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            transition: opacity 0.6s ease, visibility 0.6s ease;
+        }
+        .loader {
+            width: 70px;
+            height: 70px;
+            border: 6px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: var(--accent-green);
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Progress Bar */
+        .progress-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 5px;
+            background-color: var(--accent-green);
+            box-shadow: 0 0 10px var(--accent-green);
+            z-index: 1001;
+            width: 0;
+            transition: width 0.2s linear;
+        }
+
+        /* Back to Top Button */
+        .back-to-top {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 55px;
+            height: 55px;
+            background-color: var(--secondary-blue);
+            color: var(--white);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            opacity: 0;
+            visibility: hidden;
+            transition: var(--transition);
+            box-shadow: 0 5px 15px var(--shadow-medium);
+            z-index: 1000;
+        }
+        .back-to-top:hover {
+            background-color: var(--accent-green);
+            transform: translateY(-8px) scale(1.05);
+            box-shadow: 0 8px 20px var(--accent-green);
+        }
+        .back-to-top.visible {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* Navigation */
+        nav {
+            background-color: var(--primary-blue);
+            box-shadow: 0 5px 15px var(--shadow-medium);
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+            transition: var(--transition);
+        }
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: var(--primary-blue);
+        }
+        .logo {
+            display: flex;
+            align-items: center;
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--white);
+            text-decoration: none;
+            transition: var(--transition);
+        }
+        .logo:hover {
+            transform: scale(1.05);
+        }
+        .logo i {
+            margin-right: 0.5rem;
+            font-size: 2.2rem;
+            animation: float 3s infinite ease-in-out;
+            color: var(--accent-green);
+        }
+        @keyframes float {
+            0% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+            100% { transform: translateY(0); }
+        }
+        .hamburger {
+            display: flex;
+            flex-direction: column;
+            cursor: pointer;
+            padding: 0;
+            z-index: 1001;
+            background-color: var(--primary-blue);
+            border-radius: 0;
+        }
+        .hamburger span {
+            width: 25px;
+            height: 3px;
+            background-color: var(--white);
+            margin: 3px 0;
+            transition: var(--transition);
+        }
+        .hamburger.active span:nth-child(1) {
+            transform: rotate(-45deg) translate(-5px, 6px);
+        }
+        .hamburger.active span:nth-child(2) {
+            opacity: 0;
+        }
+        .hamburger.active span:nth-child(3) {
+            transform: rotate(45deg) translate(-5px, -6px);
+        }
+        @media (max-width: 768px) {
+            .hamburger {
+                padding: 0;
+                background-color: var(--primary-blue);
+            }
+        }
+
+        /* Sidebar Menu */
+        .sidebar {
+            position: fixed;
+            top: 70px;
+            right: -300px;
+            width: 300px;
+            height: calc(100vh - 70px);
+            background-color: var(--secondary-blue);
+            transition: var(--transition);
+            z-index: 999;
+            overflow-y: auto;
+            box-shadow: -2px 0 10px var(--shadow-medium);
+        }
+        .sidebar.active {
+            right: 0;
+        }
+        .sidebar-menu {
+            padding: 1.5rem 0;
+        }
+        .sidebar-item {
+            padding: 1rem 1.5rem;
+            color: var(--white);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            text-decoration: none;
+            position: relative;
+            overflow: hidden;
+        }
+        .sidebar-item::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 0;
+            height: 100%;
+            background-color: var(--accent-green);
+            transition: width 0.3s ease;
+            z-index: -1;
+        }
+        .sidebar-item:hover::before {
+            width: 100%;
+        }
+        .sidebar-item.active {
+            background-color: var(--accent-green);
+        }
+        .sidebar-item i {
+            transition: var(--transition);
+            color: var(--accent-green);
+        }
+
+        /* Main Content */
+        main {
+            transition: margin-right .5s;
+            padding: 3rem 2rem;
+            max-width: 1200px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 1.25rem auto;
+            background-color: var(--white);
+            padding: 1.875rem;
+            border-radius: 0.9375rem;
+            box-shadow: 0 0.5rem 1.875rem var(--shadow-medium);
+            opacity: 0;
+            transform: translateY(1.25rem);
+            transition: opacity 1s cubic-bezier(0.25, 0.8, 0.25, 1), transform 1s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+        .container.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        h1 {
+            color: var(--primary-blue);
+            text-align: center;
+            margin-bottom: 0.625rem;
+            font-weight: 700;
+            font-size: 2rem;
+            text-transform: uppercase;
+            letter-spacing: 0.125rem;
+            position: relative;
+            display: inline-block;
+            width: 100%;
+        }
+        
+        h1::after {
+            content: '';
+            position: absolute;
+            bottom: -0.625rem;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 6.25rem;
+            height: 0.25rem;
+            background: linear-gradient(90deg, var(--primary-blue), var(--accent-green));
+            border-radius: 0.125rem;
+        }
+        
+        p {
+            text-align: center;
+            color: var(--grey-text);
+            margin-bottom: 1.875rem;
+            font-size: 1.125rem;
+        }
+        
+        /* Filters */
+        .filters {
+            display: flex;
+            gap: 1.25rem;
+            margin-bottom: 1.875rem;
+            flex-wrap: wrap;
+            background: var(--bg-light);
+            padding: 1.25rem;
+            border-radius: 0.75rem;
+            box-shadow: 0 0.25rem 0.9375rem var(--shadow-light);
+            border: 1px solid rgba(192, 192, 192, 0.3);
+        }
+        
+        .filter-group {
+            flex: 1;
+            min-width: 12.5rem;
+        }
+        
+        .filter-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: var(--primary-blue);
+            text-transform: uppercase;
+            letter-spacing: 0.0625rem;
+            font-size: 0.875rem;
+        }
+        
+        .filter-group select {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #ddd;
+            border-radius: 0.5rem;
+            font-size: 1rem;
+            transition: var(--transition);
+            background: var(--white);
+        }
+        
+        .filter-group select:focus {
+            border-color: var(--primary-blue);
+            box-shadow: 0 0 0 0.1875rem rgba(26, 42, 108, 0.2);
+            outline: none;
+        }
+        
+        /* Classes Grid */
+        .classes-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(20rem, 1fr));
+            gap: 1.5625rem;
+        }
+        
+        .class-card {
+            border: none;
+            border-radius: 0.9375rem;
+            overflow: hidden;
+            transition: var(--transition);
+            box-shadow: 0 0.3125rem 0.9375rem var(--shadow-light);
+            background: var(--white);
+            animation: fadeInUp 0.6s ease-out;
+            position: relative;
+            border: 1px solid rgba(192, 192, 192, 0.3);
+        }
+        
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(1.875rem); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .class-card:hover {
+            transform: translateY(-0.625rem);
+            box-shadow: 0 0.9375rem 1.875rem var(--shadow-medium);
+            border-color: var(--accent-green);
+        }
+        
+        .class-thumbnail {
+            height: 12.5rem;
+            background-color: #f0f0f0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .class-thumbnail img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.5s ease;
+        }
+        
+        .class-card:hover .class-thumbnail img {
+            transform: scale(1.1);
+        }
+        
+        .play-icon {
+            position: absolute;
+            width: 4.375rem;
+            height: 4.375rem;
+            background: rgba(26, 42, 108, 0.8);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--white);
+            font-size: 1.75rem;
+            transition: var(--transition);
+            box-shadow: 0 0.25rem 0.9375rem var(--shadow-medium);
+        }
+        
+        .class-card:hover .play-icon {
+            background: rgba(46, 204, 113, 0.9);
+            color: var(--primary-blue);
+            transform: scale(1.1);
+        }
+        
+        .class-details {
+            padding: 1.25rem;
+        }
+        
+        .class-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--primary-blue);
+            margin-bottom: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.0625rem;
+        }
+        
+        .class-meta {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.9375rem;
+            font-size: 0.875rem;
+            color: var(--grey-text);
+        }
+        
+        .class-meta span {
+            display: flex;
+            align-items: center;
+            gap: 0.3125rem;
+        }
+        
+        .class-description {
+            color: #555;
+            margin-bottom: 1.25rem;
+            font-size: 0.9375rem;
+            line-height: 1.5;
+        }
+        
+        .view-btn {
+            display: block;
+            width: 100%;
+            padding: 0.75rem;
+            background: linear-gradient(135deg, var(--primary-blue), var(--accent-green));
+            color: var(--white);
+            text-align: center;
+            text-decoration: none;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            transition: var(--transition);
+            text-transform: uppercase;
+            letter-spacing: 0.0625rem;
+            box-shadow: 0 0.25rem 0.625rem rgba(26, 42, 108, 0.3);
+        }
+        
+        .view-btn:hover {
+            transform: translateY(-0.1875rem);
+            box-shadow: 0 0.375rem 0.9375rem rgba(26, 42, 108, 0.4);
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 3.75rem 1.25rem;
+            color: var(--grey-text);
+            animation: fadeIn 1s ease-out;
+        }
+        
+        .empty-state i {
+            font-size: 4.5rem;
+            color: #ccc;
+            margin-bottom: 1.25rem;
+        }
+        
+        .empty-state h3 {
+            font-size: 1.5rem;
+            margin-bottom: 0.625rem;
+            color: var(--primary-blue);
+        }
+        
+        /* Video Modal */
+        .video-modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(26, 42, 108, 0.9);
+            backdrop-filter: blur(0.3125rem);
+        }
+        
+        .video-modal-content {
+            position: relative;
+            margin: 3.125rem auto;
+            width: 80%;
+            max-width: 62.5rem;
+            animation: modalFadeIn 0.5s ease-out;
+            border: 0.125rem solid rgba(192, 192, 192, 0.5);
+            border-radius: 0.9375rem;
+            overflow: hidden;
+        }
+        
+        @keyframes modalFadeIn {
+            from { opacity: 0; transform: scale(0.8); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        
+        .video-modal-header {
+            padding: 1.25rem;
+            background: linear-gradient(135deg, var(--primary-blue), var(--secondary-blue));
+            color: var(--white);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(192, 192, 192, 0.5);
+        }
+        
+        .video-modal-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+        
+        .video-modal-close {
+            font-size: 1.75rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        
+        .video-modal-close:hover {
+            color: rgba(192, 192, 192, 0.8);
+            transform: rotate(90deg);
+        }
+        
+        .video-modal-body {
+            padding: 0;
+            background: #000;
+        }
+        
+        .video-modal-video {
+            width: 100%;
+            height: 31.25rem;
+            object-fit: contain;
+        }
+        
+        .video-modal-footer {
+            padding: 1.25rem;
+            background: var(--bg-light);
+            border-top: 1px solid rgba(192, 192, 192, 0.5);
+        }
+        
+        .video-modal-info {
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 0.9375rem;
+        }
+        
+        .video-modal-meta {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--primary-blue);
+        }
+        
+        .attachments-section {
+            margin-top: 0.9375rem;
+            padding-top: 0.9375rem;
+            border-top: 1px solid #ddd;
+        }
+        
+        .attachments-title {
+            font-weight: 600;
+            color: var(--primary-blue);
+            margin-bottom: 0.625rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .attachments-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.625rem;
+        }
+        
+        .attachment-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 0.75rem;
+            background: rgba(26, 42, 108, 0.1);
+            border-radius: 1.25rem;
+            color: var(--primary-blue);
+            font-size: 0.875rem;
+            transition: var(--transition);
+            border: 1px solid rgba(192, 192, 192, 0.3);
+        }
+        
+        .attachment-item:hover {
+            background: rgba(192, 192, 192, 0.2);
+            transform: translateY(-0.125rem);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            main {
+                padding: 1.5rem;
+            }
+            .container {
+                padding: 1.25rem;
+            }
+            h1 {
+                font-size: 1.75rem;
+            }
+            p {
+                font-size: 1rem;
+            }
+            .classes-grid {
+                grid-template-columns: 1fr;
+            }
+            .video-modal-content {
+                width: 95%;
+                margin: 6.25rem auto;
+            }
+            .video-modal-video {
+                height: 18.75rem;
+            }
+            .filters {
+                flex-direction: column;
+                gap: 0.9375rem;
+            }
+            .back-to-top {
+                width: 45px;
+                height: 45px;
+                bottom: 1.25rem;
+                right: 1.25rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Loading Screen -->
+    <div class="loader-container" id="loader">
+        <div class="loader"></div>
+    </div>
+    <!-- Progress Bar -->
+    <div class="progress-bar" id="progressBar"></div>
+    <!-- Back to Top Button -->
+    <button class="back-to-top" id="backToTop" aria-label="Back to top">
+        <i class="fas fa-arrow-up"></i>
+    </button>
+    <!-- Navigation -->
+    <nav>
+        <div class="nav-container">
+            <a href="home.html" class="logo">
+                <i class="fas fa-graduation-cap"></i>
+                Smart Classroom
+            </a>
+            <button class="hamburger" id="hamburger" aria-label="Toggle menu" aria-expanded="false">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+        </div>
+    </nav>
+    <!-- Sidebar Menu -->
+    <div class="sidebar" id="sidebar" role="navigation" aria-label="Main navigation">
+        <div class="sidebar-menu">
+            <a href="home" class="sidebar-item">
+                <span>Home</span>
+                <i class="fas fa-home"></i>
+            </a>
+            <a href="attendance.html" class="sidebar-item">
+                <span>Attendance</span>
+                <i class="fas fa-user-check"></i>
+            </a>
+            <a href="assignment.html" class="sidebar-item">
+                <span>Assignment</span>
+                <i class="fas fa-calendar-alt"></i>
+            </a>
+            <a href="recorded_class.html" class="sidebar-item active">
+                <span>Recorded Classes</span>
+                <i class="fas fa-video"></i>
+            </a>
+            <a href="notes.html" class="sidebar-item">
+                <span>Notes</span>
+                <i class="fas fa-sticky-note"></i>
+            </a>
+            <a href="notices.html" class="sidebar-item">
+                <span>Notices</span>
+                <i class="fas fa-bell"></i>
+            </a>
+            <a href="profile.html" class="sidebar-item">
+                <span>Profile</span>
+                <i class="fas fa-user"></i>
+            </a>
+            <a href="academic_profile.html" class="sidebar-item">
+                <span>Academic Profile</span>
+                <i class="fas fa-graduation-cap"></i>
+            </a>
+            <a href="settings.html" class="sidebar-item">
+                <span>Settings</span>
+                <i class="fas fa-cog"></i>
+            </a>
+        </div>
+    </div>
+    <!-- Main Content -->
+    <main>
+        <div class="container">
+            <h1>Recorded Classes</h1>
+            <p>Access your class recordings anytime, anywhere</p>
+            
+            <!-- Filters -->
+            <div class="filters">
+                <div class="filter-group">
+                    <label for="subject-filter">
+                        <i class="fas fa-book"></i> Subject
+                    </label>
+                    <select id="subject-filter" aria-label="Filter by subject">
+                        <option value="">All Subjects</option>
+                        <option value="Mathematics">Mathematics</option>
+                        <option value="Science">Science</option>
+                        <option value="English">English</option>
+                        <option value="History">History</option>
+                        <option value="Computer Science">Computer Science</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label for="classroom-filter">
+                        <i class="fas fa-users"></i> Classroom
+                    </label>
+                    <select id="classroom-filter" aria-label="Filter by classroom">
+                        <option value="">All Classrooms</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label for="date-filter">
+                        <i class="fas fa-calendar-alt"></i> Date
+                    </label>
+                    <select id="date-filter" aria-label="Sort by date">
+                        <option value="">All Dates</option>
+                        <option value="latest">Latest First</option>
+                        <option value="oldest">Oldest First</option>
+                    </select>
+                </div>
+            </div>
+            
+            <!-- Classes Grid -->
+            <div id="classes-container" class="classes-grid"></div>
+            
+            <div id="empty-state" class="empty-state" style="display: none;">
+                <i class="fas fa-video-slash"></i>
+                <h3>No recorded classes found</h3>
+                <p>Check back later for new recordings</p>
+            </div>
+        </div>
+    </main>
+    
+    <!-- Video Modal -->
+    <div id="videoModal" class="video-modal" role="dialog" aria-labelledby="modalTitle">
+        <div class="video-modal-content">
+            <div class="video-modal-header">
+                <div class="video-modal-title" id="modalTitle">Class Title</div>
+                <button class="video-modal-close" id="modalClose" aria-label="Close modal">&times;</button>
+            </div>
+            <div class="video-modal-body">
+                <video id="modalVideo" class="video-modal-video" controls aria-label="Class recording video"></video>
+            </div>
+            <div class="video-modal-footer">
+                <div class="video-modal-info">
+                    <div class="video-modal-meta">
+                        <i class="fas fa-book"></i>
+                        <span id="modalSubject">Subject</span>
+                    </div>
+                    <div class="video-modal-meta">
+                        <i class="fas fa-chalkboard-teacher"></i>
+                        <span id="modalTeacher">Teacher</span>
+                    </div>
+                    <div class="video-modal-meta">
+                        <i class="fas fa-users"></i>
+                        <span id="modalClassroom">Classroom</span>
+                    </div>
+                    <div class="video-modal-meta">
+                        <i class="fas fa-calendar-alt"></i>
+                        <span id="modalDate">Date</span>
+                    </div>
+                </div>
+                <div class="attachments-section" id="attachmentsSection" style="display: none;">
+                    <div class="attachments-title">
+                        <i class="fas fa-paperclip"></i> Attachments
+                    </div>
+                    <div class="attachments-list" id="attachmentsList">
+                        <!-- Attachments will be loaded here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Sample recorded classes data
+        const recordedClasses = [
+            {
+                id: "1",
+                title: "Introduction to Algebra",
+                subject: "Mathematics",
+                teacherName: "Prof. Smith",
+                classroom: "Room A101",
+                timestamp: "2025-09-20T10:00:00Z",
+                description: "Learn the basics of algebra, including variables and equations.",
+                videoUrl: "https://www.youtube.com/embed/9vKqVkMQHKk",
+                thumbnail: "https://img.youtube.com/vi/9vKqVkMQHKk/mqdefault.jpg",
+                attachments: ["Algebra_Notes.pdf", "Practice_Problems.docx"]
+            },
+            {
+                id: "2",
+                title: "Photosynthesis Basics",
+                subject: "Science",
+                teacherName: "Dr. Green",
+                classroom: "Room B202",
+                timestamp: "2025-09-18T14:00:00Z",
+                description: "Understand the process of photosynthesis in plants.",
+                videoUrl: "https://www.youtube.com/embed/uixA8ZXx0KU",
+                thumbnail: "https://img.youtube.com/vi/uixA8ZXx0KU/mqdefault.jpg",
+                attachments: ["Photosynthesis_Slides.pdf"]
+            },
+            {
+                id: "3",
+                title: "Shakespeare's Hamlet",
+                subject: "English",
+                teacherName: "Ms. Brown",
+                classroom: "Room C303",
+                timestamp: "2025-09-15T09:00:00Z",
+                description: "Analyze key themes and characters in Hamlet.",
+                videoUrl: "https://www.youtube.com/embed/0iRr2G5qD20",
+                thumbnail: "https://img.youtube.com/vi/0iRr2G5qD20/mqdefault.jpg",
+                attachments: []
+            },
+            {
+                id: "4",
+                title: "World War II Overview",
+                subject: "History",
+                teacherName: "Mr. Davis",
+                classroom: "Room D404",
+                timestamp: "2025-09-10T11:30:00Z",
+                description: "Explore the major events of World War II.",
+                videoUrl: "https://www.youtube.com/embed/Q78COTwT7nE",
+                thumbnail: "https://img.youtube.com/vi/Q78COTwT7nE/mqdefault.jpg",
+                attachments: ["WWII_Timeline.pdf"]
+            },
+            {
+                id: "5",
+                title: "Python Programming Basics",
+                subject: "Computer Science",
+                teacherName: "Dr. Lee",
+                classroom: "Room E505",
+                timestamp: "2025-09-22T13:00:00Z",
+                description: "Introduction to Python programming for beginners.",
+                videoUrl: "https://www.youtube.com/embed/rfscVS0vtbw",
+                thumbnail: "https://img.youtube.com/vi/rfscVS0vtbw/mqdefault.jpg",
+                attachments: ["Python_Code_Examples.zip"]
+            }
+        ];
+
+        // Toggle sidebar
+        function toggleNav() {
+            const sidebar = document.getElementById("sidebar");
+            const hamburger = document.getElementById("hamburger");
+            sidebar.classList.toggle('active');
+            hamburger.classList.toggle('active');
+            const isOpen = sidebar.classList.contains('active');
+            hamburger.setAttribute('aria-expanded', isOpen);
+        }
+
+        // Load recorded classes
+        function loadRecordedClasses() {
+            const classesContainer = document.getElementById('classes-container');
+            const emptyState = document.getElementById('empty-state');
+            
+            // Get filter values
+            const subjectFilter = document.getElementById('subject-filter').value;
+            const classroomFilter = document.getElementById('classroom-filter').value;
+            const dateFilter = document.getElementById('date-filter').value;
+            
+            // Filter classes
+            let filteredClasses = recordedClasses;
+            
+            if (subjectFilter) {
+                filteredClasses = filteredClasses.filter(cls => cls.subject === subjectFilter);
+            }
+            
+            if (classroomFilter) {
+                filteredClasses = filteredClasses.filter(cls => cls.classroom === classroomFilter);
+            }
+            
+            // Sort by date if selected
+            if (dateFilter === 'latest') {
+                filteredClasses.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+            } else if (dateFilter === 'oldest') {
+                filteredClasses.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+            }
+            
+            // Clear container
+            classesContainer.innerHTML = '';
+            
+            if (!filteredClasses || filteredClasses.length === 0) {
+                emptyState.style.display = 'block';
+                return;
+            } else {
+                emptyState.style.display = 'none';
+            }
+            
+            // Populate classes
+            filteredClasses.forEach((cls, index) => {
+                if (!cls.id || !cls.title || !cls.subject || !cls.teacherName || !cls.classroom || !cls.timestamp) {
+                    console.warn('Invalid class data:', cls);
+                    return;
+                }
+                
+                const classCard = document.createElement('div');
+                classCard.className = 'class-card';
+                classCard.style.animationDelay = `${index * 0.1}s`;
+                
+                // Format date
+                const date = new Date(cls.timestamp);
+                const formattedDate = date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                
+                classCard.innerHTML = `
+                    <div class="class-thumbnail">
+                        <img src="${cls.thumbnail || 'https://picsum.photos/seed/' + cls.id + '/400/225.jpg'}" alt="${cls.title || 'Class thumbnail'}">
+                        <div class="play-icon">
+                            <i class="fas fa-play"></i>
+                        </div>
+                    </div>
+                    <div class="class-details">
+                        <div class="class-title">${cls.title || 'Untitled'}</div>
+                        <div class="class-meta">
+                            <span><i class="fas fa-book"></i> ${cls.subject || 'Unknown'}</span>
+                            <span><i class="fas fa-calendar"></i> ${formattedDate}</span>
+                        </div>
+                        <div class="class-meta">
+                            <span><i class="fas fa-chalkboard-teacher"></i> ${cls.teacherName || 'Unknown'}</span>
+                            <span><i class="fas fa-users"></i> ${cls.classroom || 'Unknown'}</span>
+                        </div>
+                        <div class="class-description">${cls.description || 'No description available'}</div>
+                        <a href="#" class="view-btn" data-id="${cls.id}">
+                            <i class="fas fa-play-circle"></i> View Recording
+                        </a>
+                    </div>
+                `;
+                
+                classesContainer.appendChild(classCard);
+            });
+        }
+        
+        // Open video modal
+        function openVideoModal(classData) {
+            const modal = document.getElementById('videoModal');
+            const modalTitle = document.getElementById('modalTitle');
+            const modalVideo = document.getElementById('modalVideo');
+            const modalSubject = document.getElementById('modalSubject');
+            const modalTeacher = document.getElementById('modalTeacher');
+            const modalClassroom = document.getElementById('modalClassroom');
+            const modalDate = document.getElementById('modalDate');
+            const attachmentsSection = document.getElementById('attachmentsSection');
+            const attachmentsList = document.getElementById('attachmentsList');
+            
+            // Validate class data
+            if (!classData) {
+                console.error('Invalid class data');
+                return;
+            }
+            
+            // Set modal content with fallbacks
+            modalTitle.textContent = classData.title || 'Untitled';
+            modalVideo.src = classData.videoUrl || '';
+            modalSubject.textContent = classData.subject || 'Unknown';
+            modalTeacher.textContent = classData.teacherName || 'Unknown';
+            modalClassroom.textContent = classData.classroom || 'Unknown';
+            
+            // Format date
+            const date = new Date(classData.timestamp);
+            modalDate.textContent = date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+            
+            // Show attachments if any
+            if (classData.attachments && Array.isArray(classData.attachments) && classData.attachments.length > 0) {
+                attachmentsSection.style.display = 'block';
+                attachmentsList.innerHTML = '';
+                
+                classData.attachments.forEach(attachment => {
+                    if (attachment) {
+                        const attachmentItem = document.createElement('div');
+                        attachmentItem.className = 'attachment-item';
+                        attachmentItem.innerHTML = `
+                            <i class="fas fa-file"></i>
+                            <span>${attachment}</span>
+                        `;
+                        attachmentsList.appendChild(attachmentItem);
+                    }
+                });
+            } else {
+                attachmentsSection.style.display = 'none';
+            }
+            
+            // Show modal
+            modal.style.display = 'block';
+        }
+        
+        // Close video modal
+        function closeVideoModal() {
+            const modal = document.getElementById('videoModal');
+            const modalVideo = document.getElementById('modalVideo');
+            
+            // Pause video
+            modalVideo.pause();
+            modalVideo.src = ''; // Reset video source to prevent memory leaks
+            
+            // Hide modal
+            modal.style.display = 'none';
+        }
+        
+        // Populate classroom filter
+        function populateClassroomFilter() {
+            const classroomFilter = document.getElementById('classroom-filter');
+            
+            // Get unique classrooms from sample data
+            const classrooms = [...new Set(recordedClasses.map(cls => cls.classroom).filter(Boolean))];
+            
+            // Clear existing options except "All Classrooms"
+            classroomFilter.innerHTML = '<option value="">All Classrooms</option>';
+            
+            // Add classroom options
+            classrooms.forEach(classroom => {
+                const option = document.createElement('option');
+                option.value = classroom;
+                option.textContent = classroom;
+                classroomFilter.appendChild(option);
+            });
+        }
+        
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', function() {
+            // Populate classroom filter and load classes
+            populateClassroomFilter();
+            loadRecordedClasses();
+            
+            // Event delegation for view buttons
+            document.getElementById('classes-container').addEventListener('click', function(e) {
+                const btn = e.target.closest('.view-btn');
+                if (btn) {
+                    e.preventDefault();
+                    const classId = btn.getAttribute('data-id');
+                    const classData = recordedClasses.find(cls => cls.id === classId);
+                    if (classData) {
+                        openVideoModal(classData);
+                    }
+                }
+            });
+            
+            // Add event listeners to filters
+            document.getElementById('subject-filter').addEventListener('change', loadRecordedClasses);
+            document.getElementById('classroom-filter').addEventListener('change', loadRecordedClasses);
+            document.getElementById('date-filter').addEventListener('change', loadRecordedClasses);
+            
+            // Add event listener to modal close button
+            document.getElementById('modalClose').addEventListener('click', closeVideoModal);
+            
+            // Close modal when clicking outside of it
+            window.addEventListener('click', (e) => {
+                const modal = document.getElementById('videoModal');
+                if (e.target === modal) {
+                    closeVideoModal();
+                }
+            });
+            
+            // Keyboard accessibility for modal close
+            document.getElementById('modalClose').addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    closeVideoModal();
+                }
+            });
+            
+            // Hamburger menu toggle with keyboard support
+            const hamburger = document.getElementById('hamburger');
+            hamburger.addEventListener('click', toggleNav);
+            hamburger.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    toggleNav();
+                }
+            });
+            
+            // Progress Bar
+            window.addEventListener('scroll', function() {
+                const scrollPosition = window.scrollY;
+                const documentHeight = document.documentElement.scrollHeight - window.innerHeight;
+                const scrollPercentage = documentHeight > 0 ? (scrollPosition / documentHeight) * 100 : 0;
+                document.getElementById('progressBar').style.width = scrollPercentage + '%';
+            });
+            
+            // Back to Top Button
+            const backToTopButton = document.getElementById('backToTop');
+            window.addEventListener('scroll', function() {
+                if (window.scrollY > 400) {
+                    backToTopButton.classList.add('visible');
+                } else {
+                    backToTopButton.classList.remove('visible');
+                }
+            });
+            backToTopButton.addEventListener('click', function() {
+                window.scrollTo({
+                    top: 0,
+                    behavior: 'smooth'
+                });
+            });
+            backToTopButton.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    window.scrollTo({
+                        top: 0,
+                        behavior: 'smooth'
+                    });
+                }
+            });
+            
+            // Hide loader after content is loaded
+            setTimeout(function() {
+                const loader = document.getElementById('loader');
+                loader.style.opacity = '0';
+                loader.style.visibility = 'hidden';
+                document.querySelector('.container').classList.add('visible');
+            }, 1000);
+        });
+    </script>
+</body>
+</html>

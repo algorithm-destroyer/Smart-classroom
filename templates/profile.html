@@ -1,0 +1,676 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Profile</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* General Styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+
+        :root {
+            --primary-blue: #0A1B4F;
+            --secondary-blue: #1C3373;
+            --accent-green: #2ecc71;
+            --text-dark: #333;
+            --text-light: #f4f7fa;
+            --bg-light: #f8faff;
+            --white: #ffffff;
+            --grey-text: #6e7a8e;
+            --shadow-light: rgba(0, 0, 0, 0.08);
+            --shadow-medium: rgba(0, 0, 0, 0.15);
+            --transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+
+        body {
+            background: linear-gradient(135deg, #e0f2f7, #c7e8f0);
+            min-height: 100vh;
+            color: var(--text-dark);
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* Abstract Shapes */
+        body::before, body::after {
+            content: '';
+            position: absolute;
+            background-repeat: no-repeat;
+            opacity: 0.1;
+            z-index: -1;
+        }
+        body::before {
+            width: 300px;
+            height: 300px;
+            top: -50px;
+            left: -50px;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'%3E%3Cdefs%3E%3ClinearGradient id='a' x1='0%' y1='0%' x2='100%' y2='100%'%3E%3Cstop offset='0%' stop-color='%231C3373'/%3E%3Cstop offset='100%' stop-color='%230A1B4F'/%3E%3C/linearGradient%3E%3C/defs%3E%3Ccircle cx='100' cy='100' r='90' fill='url(%23a)'/%3E%3C/svg%3E");
+            transform: rotate(30deg);
+            animation: moveShape1 10s infinite alternate;
+        }
+        body::after {
+            width: 250px;
+            height: 250px;
+            bottom: -70px;
+            right: -70px;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'%3E%3Cdefs%3E%3ClinearGradient id='a' x1='0%' y1='0%' x2='100%' y2='100%'%3E%3Cstop offset='0%' stop-color='%232ecc71'/%3E%3Cstop offset='100%' stop-color='%231C3373'/%3E%3C/linearGradient%3E%3C/defs%3E%3Cpolygon points='100,0 200,75 160,200 40,200 0,75' fill='url(%23a)'/%3E%3C/svg%3E");
+            transform: rotate(-45deg);
+            animation: moveShape2 12s infinite alternate-reverse;
+        }
+        @keyframes moveShape1 {
+            from { transform: translate(-50px, -50px) rotate(30deg); }
+            to { transform: translate(50px, 50px) rotate(60deg); }
+        }
+        @keyframes moveShape2 {
+            from { transform: translate(70px, 70px) rotate(-45deg); }
+            to { transform: translate(-70px, -70px) rotate(-15deg); }
+        }
+
+        /* Loading Screen */
+        .loader-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: var(--primary-blue);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            transition: opacity 0.6s ease, visibility 0.6s ease;
+        }
+        .loader {
+            width: 70px;
+            height: 70px;
+            border: 6px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: var(--accent-green);
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Progress Bar */
+        .progress-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 5px;
+            background-color: var(--accent-green);
+            box-shadow: 0 0 10px var(--accent-green);
+            z-index: 1001;
+            width: 0;
+            transition: width 0.2s linear;
+        }
+
+        /* Back to Top Button */
+        .back-to-top {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 55px;
+            height: 55px;
+            background-color: var(--secondary-blue);
+            color: var(--white);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            opacity: 0;
+            visibility: hidden;
+            transition: var(--transition);
+            box-shadow: 0 5px 15px var(--shadow-medium);
+            z-index: 1000;
+        }
+        .back-to-top:hover {
+            background-color: var(--accent-green);
+            transform: translateY(-8px) scale(1.05);
+            box-shadow: 0 8px 20px var(--accent-green);
+        }
+        .back-to-top.visible {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* Navigation */
+        nav {
+            background-color: var(--primary-blue);
+            box-shadow: 0 5px 15px var(--shadow-medium);
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+            transition: var(--transition);
+        }
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .logo {
+            display: flex;
+            align-items: center;
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--white);
+            text-decoration: none;
+            transition: var(--transition);
+        }
+        .logo:hover {
+            transform: scale(1.05);
+        }
+        .logo i {
+            margin-right: 0.5rem;
+            font-size: 2.2rem;
+            animation: float 3s infinite ease-in-out;
+            color: var(--accent-green);
+        }
+        @keyframes float {
+            0% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+            100% { transform: translateY(0); }
+        }
+        .hamburger {
+            display: flex;
+            flex-direction: column;
+            cursor: pointer;
+            padding: 5px;
+            z-index: 1001;
+        }
+        .hamburger span {
+            width: 25px;
+            height: 3px;
+            background-color: var(--white);
+            margin: 3px 0;
+            transition: var(--transition);
+        }
+        .hamburger.active span:nth-child(1) {
+            transform: rotate(-45deg) translate(-5px, 6px);
+        }
+        .hamburger.active span:nth-child(2) {
+            opacity: 0;
+        }
+        .hamburger.active span:nth-child(3) {
+            transform: rotate(45deg) translate(-5px, -6px);
+        }
+
+        /* Sidebar Menu */
+        .sidebar {
+            position: fixed;
+            top: 70px;
+            right: -300px;
+            width: 300px;
+            height: calc(100vh - 70px);
+            background-color: var(--secondary-blue);
+            transition: var(--transition);
+            z-index: 999;
+            overflow-y: auto;
+            box-shadow: -2px 0 10px var(--shadow-medium);
+        }
+        .sidebar.active {
+            right: 0;
+        }
+        .sidebar-menu {
+            padding: 1.5rem 0;
+        }
+        .sidebar-item {
+            padding: 1rem 1.5rem;
+            color: var(--white);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            text-decoration: none;
+            position: relative;
+            overflow: hidden;
+        }
+        .sidebar-item::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 0;
+            height: 100%;
+            background-color: var(--accent-green);
+            transition: width 0.3s ease;
+            z-index: -1;
+        }
+        .sidebar-item:hover::before {
+            width: 100%;
+        }
+        .sidebar-item.active {
+            background-color: var(--accent-green);
+        }
+        .sidebar-item i {
+            transition: var(--transition);
+            color: var(--accent-green);
+        }
+
+        /* Main Content */
+        main {
+            transition: margin-right .5s;
+            padding: 3rem 2rem;
+            max-width: 1200px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .container {
+            max-width: 800px;
+            margin: 20px auto;
+            background-color: var(--white);
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px var(--shadow-light);
+            opacity: 0;
+            transform: translateY(50px);
+            transition: opacity 1s cubic-bezier(0.25, 0.8, 0.25, 1), transform 1s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+        .container.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        h1 {
+            color: var(--primary-blue);
+            text-align: center;
+            margin-bottom: 5px;
+            font-weight: 700;
+            font-size: 2rem;
+        }
+        
+        h9 {
+            display: block;
+            text-align: center;
+            color: var(--grey-text);
+            font-size: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        hr {
+            border: 0;
+            border-top: 1px solid #eee;
+            margin-bottom: 1.5625rem;
+        }
+        
+        .profile-container {
+            display: flex;
+            flex-wrap: wrap;
+            margin-bottom: 1.875rem;
+        }
+        
+        .profile-photo {
+            flex: 0 0 200px;
+            margin-right: 1.875rem;
+            text-align: center;
+        }
+        
+        .photo-placeholder {
+            width: 180px;
+            height: 180px;
+            background-color: #e1e1e1;
+            border-radius: 50%;
+            overflow: hidden;
+            margin: 0 auto 0.9375rem;
+            border: 4px solid var(--primary-blue);
+        }
+        
+        .photo-placeholder img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .upload-btn {
+            padding: 0.5rem 0.9375rem;
+            background-color: var(--primary-blue);
+            color: var(--white);
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.875rem;
+            transition: var(--transition);
+        }
+        
+        .upload-btn:hover {
+            background-color: var(--secondary-blue);
+            transform: translateY(-2px);
+        }
+        
+        .profile-details {
+            flex: 1;
+            min-width: 300px;
+        }
+        
+        .detail-section {
+            margin-bottom: 1.5625rem;
+        }
+        
+        .detail-section h3 {
+            color: var(--primary-blue);
+            margin-bottom: 0.625rem;
+            font-size: 1.125rem;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 0.3125rem;
+        }
+        
+        .detail-row {
+            display: flex;
+            margin-bottom: 0.5rem;
+        }
+        
+        .detail-label {
+            font-weight: 500;
+            width: 150px;
+            color: var(--text-dark);
+        }
+        
+        .detail-value {
+            color: var(--grey-text);
+        }
+        
+        .subjects-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-top: 0.3125rem;
+        }
+        
+        .subject-tag {
+            background-color: var(--bg-light);
+            color: var(--primary-blue);
+            padding: 0.3125rem 0.625rem;
+            border-radius: 15px;
+            font-size: 0.875rem;
+        }
+        
+        .academic-profile-link {
+            display: block;
+            text-align: center;
+            margin-top: 1.875rem;
+            padding: 0.75rem;
+            background-color: var(--primary-blue);
+            color: var(--white);
+            text-decoration: none;
+            border-radius: 4px;
+            font-weight: 600;
+            transition: var(--transition);
+        }
+        
+        .academic-profile-link:hover {
+            background-color: var(--secondary-blue);
+            transform: translateY(-2px);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            main {
+                padding: 1.5rem;
+            }
+            .container {
+                padding: 1.5625rem;
+            }
+            h1 {
+                font-size: 1.75rem;
+            }
+            h9 {
+                font-size: 0.875rem;
+            }
+            .profile-container {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .profile-photo {
+                margin-right: 0;
+                margin-bottom: 1.25rem;
+            }
+            
+            .detail-row {
+                flex-direction: column;
+            }
+            
+            .detail-label {
+                width: 100%;
+                margin-bottom: 0.3125rem;
+            }
+            .back-to-top {
+                width: 45px;
+                height: 45px;
+                bottom: 20px;
+                right: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Loading Screen -->
+    <div class="loader-container" id="loader">
+        <div class="loader"></div>
+    </div>
+    <!-- Progress Bar -->
+    <div class="progress-bar" id="progressBar"></div>
+    <!-- Back to Top Button -->
+    <div class="back-to-top" id="backToTop">
+        <i class="fas fa-arrow-up"></i>
+    </div>
+    <!-- Navigation -->
+    <nav>
+        <div class="nav-container">
+            <a href="/home.html" class="logo">
+                <i class="fas fa-graduation-cap"></i>
+                Smart Classroom
+            </a>
+            <div class="hamburger" id="hamburger">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+    </nav>
+    <!-- Sidebar Menu -->
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-menu">
+            <a href="home" class="sidebar-item">
+                <span>Home</span>
+                <i class="fas fa-home"></i>
+            </a>
+            <a href="attendance.html" class="sidebar-item">
+                <span>Attendance</span>
+                <i class="fas fa-user-check"></i>
+            </a>
+            <a href="assignment.html" class="sidebar-item">
+                <span>Assignment</span>
+                <i class="fas fa-calendar-alt"></i>
+            </a>
+            <a href="recorded_class.html" class="sidebar-item">
+                <span>Recorded Classes</span>
+                <i class="fas fa-video"></i>
+            </a>
+            <a href="notes.html" class="sidebar-item">
+                <span>Notes</span>
+                <i class="fas fa-sticky-note"></i>
+            </a>
+            <a href="notices.html" class="sidebar-item">
+                <span>Notices</span>
+                <i class="fas fa-bell"></i>
+            </a>
+            <a href="profile.html" class="sidebar-item active">
+                <span>Profile</span>
+                <i class="fas fa-user"></i>
+            </a>
+            <a href="academic_profile.html" class="sidebar-item">
+                <span>Academic Profile</span>
+                <i class="fas fa-graduation-cap"></i>
+            </a>
+            <a href="settings.html" class="sidebar-item">
+                <span>Settings</span>
+                <i class="fas fa-cog"></i>
+            </a>
+        </div>
+    </div>
+    <!-- Main Content -->
+    <main>
+        <div class="container">
+            <h1>Student Profile</h1>
+            <h9>Personal Information</h9>
+            <hr>
+            
+            <div class="profile-container">
+                <div class="profile-photo">
+                    <div class="photo-placeholder">
+                        <img src="{{ user_data.profile_photo }}" alt="ID Photo">
+                    </div>
+                    <button class="upload-btn">Change Photo</button>
+                </div>
+                
+                <div class="profile-details">
+                    <div class="detail-section">
+                        <h3>Personal Information</h3>
+                        <div class="detail-row">
+                            <div class="detail-label">Name:</div>
+                            <div class="detail-value">{{ user_data.name | default('Not provided') }}</div>
+                        </div>
+                        <div class="detail-row">
+                            <div class="detail-label">Student ID:</div>
+                            <div class="detail-value">{{ user_data.regNo | default('Not provided') }}</div>
+                        </div>
+                        <div class="detail-row">
+                            <div class="detail-label">Date of Birth:</div>
+                            <div class="detail-value">{{ user_data.dob | default('Not provided') }}</div>
+                        </div>
+                        <div class="detail-row">
+                            <div class="detail-label">Gender:</div>
+                            <div class="detail-value">{{ user_data.gender | default('Not provided') }}</div>
+                        </div>
+                    </div>
+                    
+                    <div class="detail-section">
+                        <h3>Contact Information</h3>
+                        <div class="detail-row">
+                            <div class="detail-label">Email:</div>
+                            <div class="detail-value">{{ user_data.email | default('Not provided') }}</div>
+                        </div>
+                        <div class="detail-row">
+                            <div class="detail-label">Phone:</div>
+                            <div class="detail-value">{{ user_data.phone | default('Not provided') }}</div>
+                        </div>
+                        <div class="detail-row">
+                            <div class="detail-label">Address:</div>
+                            <div class="detail-value">{{ user_data.address | default('Not provided') }}</div>
+                        </div>
+                    </div>
+                    
+                    <div class="detail-section">
+                        <h3>Academic Information</h3>
+                        <div class="detail-row">
+                            <div class="detail-label">College:</div>
+                            <div class="detail-value">{{ user_data.school | default('Not provided') }}</div>
+                        </div>
+                        <div class="detail-row">
+                            <div class="detail-label">College Address:</div>
+                            <div class="detail-value">{{ user_data.schoolAddress | default('Not provided') }}</div>
+                        </div>
+                        <div class="detail-row">
+                            <div class="detail-label">College ID:</div>
+                            <div class="detail-value">{{ user_data.schoolId | default('Not provided') }}</div>
+                        </div>
+                        <div class="detail-row">
+                            <div class="detail-label">Branch:</div>
+                            <div class="detail-value">{{ user_data.branch | default('Not provided') }}</div>
+                        </div>
+                        <div class="detail-row">
+                            <div class="detail-label">Classroom:</div>
+                            <div class="detail-value">{{ user_data.classroom | default('Not provided') }}</div>
+                        </div>
+                        <div class="detail-row">
+                            <div class="detail-label">Subjects:</div>
+                            <div class="detail-value">
+                                <div class="subjects-list">
+                                    {% if user_data.subjects %}
+                                        {% for subject in user_data.subjects %}
+                                            <span class="subject-tag">{{ subject }}</span>
+                                        {% endfor %}
+                                    {% else %}
+                                        <span class="subject-tag">No subjects</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <a href="/academic_profile.html" class="academic-profile-link">View Your Academic Profile</a>
+        </div>
+    </main>
+    
+    <script>
+        // Toggle sidebar
+        function openNav() { 
+            document.getElementById("sidebar").classList.toggle('active');
+            document.getElementById("hamburger").classList.toggle('active');
+        } 
+        
+        function closeNav() { 
+            document.getElementById("sidebar").classList.remove('active');
+            document.getElementById("hamburger").classList.remove('active');
+        } 
+        
+        // Load animation
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(function() {
+                document.getElementById('loader').style.opacity = '0';
+                document.getElementById('loader').style.visibility = 'hidden';
+                document.querySelector('.container').classList.add('visible');
+            }, 1000);
+        });
+
+        // Progress Bar
+        window.addEventListener('scroll', function() {
+            const scrollPosition = window.scrollY;
+            const documentHeight = document.documentElement.scrollHeight - window.innerHeight;
+            const scrollPercentage = documentHeight > 0 ? (scrollPosition / documentHeight) * 100 : 0;
+            document.getElementById('progressBar').style.width = scrollPercentage + '%';
+        });
+
+        // Back to Top Button
+        const backToTopButton = document.getElementById('backToTop');
+        window.addEventListener('scroll', function() {
+            if (window.scrollY > 400) {
+                backToTopButton.classList.add('visible');
+            } else {
+                backToTopButton.classList.remove('visible');
+            }
+        });
+        backToTopButton.addEventListener('click', function() {
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        });
+
+        // Hamburger Menu Toggle
+        const hamburger = document.getElementById('hamburger');
+        const sidebar = document.getElementById('sidebar');
+        hamburger.addEventListener('click', function() {
+            hamburger.classList.toggle('active');
+            sidebar.classList.toggle('active');
+        });
+    </script>
+</body>
+</html>

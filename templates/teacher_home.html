@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teacher Portal - Home</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+
+        :root {
+            --primary-blue: #0A1B4F;
+            --secondary-blue: #1C3373;
+            --accent-green: #2ecc71;
+            --text-dark: #333;
+            --text-light: #f4f7fa;
+            --bg-light: #f8faff;
+            --white: #ffffff;
+            --grey-text: #6e7a8e;
+            --shadow-light: rgba(0, 0, 0, 0.08);
+            --shadow-medium: rgba(0, 0, 0, 0.15);
+            --transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+
+        body {
+            background: linear-gradient(135deg, #e0f2f7, #c7e8f0);
+            min-height: 100vh;
+            color: var(--text-dark);
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* Abstract Shapes */
+        body::before, body::after {
+            content: '';
+            position: absolute;
+            background-repeat: no-repeat;
+            opacity: 0.1;
+            z-index: -1;
+        }
+        body::before {
+            width: 300px;
+            height: 300px;
+            top: -50px;
+            left: -50px;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'%3E%3Cdefs%3E%3ClinearGradient id='a' x1='0%' y1='0%' x2='100%' y2='100%'%3E%3Cstop offset='0%' stop-color='%231C3373'/%3E%3Cstop offset='100%' stop-color='%230A1B4F'/%3E%3C/linearGradient%3E%3C/defs%3E%3Ccircle cx='100' cy='100' r='90' fill='url(%23a)'/%3E%3C/svg%3E");
+            transform: rotate(30deg);
+            animation: moveShape1 10s infinite alternate;
+        }
+        body::after {
+            width: 250px;
+            height: 250px;
+            bottom: -70px;
+            right: -70px;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'%3E%3Cdefs%3E%3ClinearGradient id='a' x1='0%' y1='0%' x2='100%' y2='100%'%3E%3Cstop offset='0%' stop-color='%232ecc71'/%3E%3Cstop offset='100%' stop-color='%231C3373'/%3E%3C/linearGradient%3E%3C/defs%3E%3Cpolygon points='100,0 200,75 160,200 40,200 0,75' fill='url(%23a)'/%3E%3C/svg%3E");
+            transform: rotate(-45deg);
+            animation: moveShape2 12s infinite alternate-reverse;
+        }
+        @keyframes moveShape1 {
+            from { transform: translate(-50px, -50px) rotate(30deg); }
+            to { transform: translate(50px, 50px) rotate(60deg); }
+        }
+        @keyframes moveShape2 {
+            from { transform: translate(70px, 70px) rotate(-45deg); }
+            to { transform: translate(-70px, -70px) rotate(-15deg); }
+        }
+
+        /* Progress Bar */
+        .progress-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 5px;
+            background-color: var(--accent-green);
+            box-shadow: 0 0 10px var(--accent-green);
+            z-index: 1001;
+            width: 0;
+            transition: width 0.2s linear;
+        }
+
+        /* Back to Top Button */
+        .back-to-top {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 55px;
+            height: 55px;
+            background-color: var(--secondary-blue);
+            color: var(--white);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            opacity: 0;
+            visibility: hidden;
+            transition: var(--transition);
+            box-shadow: 0 5px 15px var(--shadow-medium);
+            z-index: 1000;
+        }
+        .back-to-top:hover {
+            background-color: var(--accent-green);
+            transform: translateY(-8px) scale(1.05);
+            box-shadow: 0 8px 20px var(--accent-green);
+        }
+        .back-to-top.visible {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* Navigation */
+        nav {
+            background-color: var(--primary-blue);
+            box-shadow: 0 5px 15px var(--shadow-medium);
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1002;
+            transition: var(--transition);
+        }
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .logo {
+            display: flex;
+            align-items: center;
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--white);
+            text-decoration: none;
+            transition: var(--transition);
+        }
+        .logo:hover {
+            transform: scale(1.05);
+        }
+        .logo i {
+            margin-right: 0.5rem;
+            font-size: 2.2rem;
+            animation: float 3s infinite ease-in-out;
+            color: var(--accent-green);
+        }
+        @keyframes float {
+            0% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+            100% { transform: translateY(0); }
+        }
+        .hamburger {
+            display: flex;
+            flex-direction: column;
+            cursor: pointer;
+            padding: 5px;
+            z-index: 1004;
+        }
+        .hamburger span {
+            width: 25px;
+            height: 3px;
+            background-color: var(--white);
+            margin: 3px 0;
+            transition: var(--transition);
+        }
+        .hamburger.active span:nth-child(1) {
+            transform: rotate(-45deg) translate(-5px, 6px);
+        }
+        .hamburger.active span:nth-child(2) {
+            opacity: 0;
+        }
+        .hamburger.active span:nth-child(3) {
+            transform: rotate(45deg) translate(-5px, -6px);
+        }
+
+        /* Sidebar Menu */
+        .sidebar {
+            position: fixed;
+            top: 70px;
+            right: -300px;
+            width: 300px;
+            height: calc(100vh - 70px);
+            background-color: var(--secondary-blue);
+            transition: var(--transition);
+            z-index: 1003;
+            overflow-y: auto;
+            overflow-x: hidden;
+            box-shadow: -2px 0 10px var(--shadow-medium);
+        }
+        .sidebar.active {
+            right: 0;
+            z-index: 1003;
+        }
+        .sidebar-menu {
+            padding: 1rem 1.5rem;
+        }
+        .sidebar-item {
+            padding: 1rem 1.5rem;
+            color: var(--white);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            text-decoration: none;
+            position: relative;
+            overflow: hidden;
+            z-index: 1;
+        }
+        .sidebar-item::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 0;
+            height: 100%;
+            background-color: var(--accent-green);
+            transition: width 0.3s ease;
+            z-index: -1;
+        }
+        .sidebar-item:hover::before {
+            width: 100%;
+        }
+        .sidebar-item.active {
+            background-color: var(--accent-green);
+            color: var(--white);
+        }
+        .sidebar-item i {
+            transition: var(--transition);
+            color: var(--accent-green);
+        }
+
+        /* Main Content */
+        main {
+            transition: margin-right .5s;
+            padding: 3rem 2rem;
+            max-width: 1200px;
+            margin-left: auto;
+            margin-right: auto;
+            margin-top: 70px;
+        }
+        .container { 
+            background: var(--white);
+            border-radius: 20px;
+            padding: 2.5rem;
+            box-shadow: 0 10px 30px var(--shadow-light);
+            opacity: 0;
+            transform: translateY(50px);
+            transition: opacity 1s cubic-bezier(0.25, 0.8, 0.25, 1), transform 1s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+        .container.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        h1 {
+            color: var(--primary-blue);
+            font-size: 3rem;
+            text-align: center;
+            font-weight: 700;
+            position: relative;
+            margin-bottom: 1rem;
+        }
+        h1::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--secondary-blue), var(--accent-green));
+            animation: expandWidth 1.8s cubic-bezier(0.25, 0.8, 0.25, 1) forwards;
+            border-radius: 2px;
+        }
+        @keyframes expandWidth {
+            from { width: 0; }
+            to { width: 100%; }
+        }
+        p {
+            color: var(--grey-text);
+            font-size: 1.1rem;
+            line-height: 1.8;
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+
+        /* Teacher Details Section */
+        .teacher-details {
+            margin-bottom: 30px;
+            padding: 20px;
+            background: #f9f9f9;
+            border-radius: 8px;
+            border-left: 4px solid var(--primary-blue);
+        }
+        .teacher-details h3 {
+            color: var(--primary-blue);
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+        .teacher-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+        }
+        .info-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .info-label {
+            font-weight: bold;
+            color: var(--text-dark);
+            min-width: 140px;
+        }
+        .info-value {
+            color: var(--grey-text);
+        }
+
+        /* Department Section */
+        .department-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            background: #f9f9f9;
+            border-radius: 8px;
+            border-left: 4px solid var(--primary-blue);
+        }
+        .department-section h3 {
+            color: var(--primary-blue);
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+
+        /* Upcoming Class Section */
+        .upcoming-class-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            background: #f9f9f9;
+            border-radius: 8px;
+            border-left: 4px solid var(--primary-blue);
+        }
+        .upcoming-class-section h3 {
+            color: var(--primary-blue);
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+        .upcoming-class {
+            padding: 15px;
+            background: var(--white);
+            border: 1px solid #eee;
+            border-radius: 6px;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .upcoming-class:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        .upcoming-class .time {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--accent-green);
+            margin-bottom: 10px;
+        }
+        .upcoming-class .details {
+            color: var(--grey-text);
+        }
+
+        /* Notices Section */
+        .notices-section {
+            margin-top: 30px;
+        }
+        .notices-section h3 {
+            color: var(--primary-blue);
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+        .notice-list {
+            list-style-type: none;
+            padding: 0;
+        }
+        .notice-item {
+            padding: 15px;
+            margin-bottom: 10px;
+            background: var(--white);
+            border: 1px solid #eee;
+            border-radius: 6px;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .notice-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        .notice-date {
+            color: var(--grey-text);
+            font-size: 12px;
+            margin-bottom: 5px;
+        }
+        .notice-title {
+            color: var(--primary-blue);
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .notice-content {
+            color: var(--text-dark);
+            font-size: 14px;
+        }
+        .view-all-btn {
+            display: block;
+            width: 200px;
+            margin: 20px auto 0;
+            padding: 10px;
+            background: var(--primary-blue);
+            color: var(--white);
+            text-align: center;
+            text-decoration: none;
+            border-radius: 4px;
+            font-weight: bold;
+            transition: background-color 0.3s;
+        }
+        .view-all-btn:hover {
+            background: var(--secondary-blue);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            main {
+                padding: 1.5rem;
+                margin-top: 70px;
+            }
+            .container {
+                padding: 2rem;
+            }
+            h1 {
+                font-size: 2.5rem;
+            }
+            p {
+                font-size: 1rem;
+            }
+            .back-to-top {
+                width: 45px;
+                height: 45px;
+                bottom: 20px;
+                right: 20px;
+            }
+            .teacher-info {
+                grid-template-columns: 1fr;
+            }
+            .sidebar {
+                width: 100%;
+                max-width: 300px;
+                top: 70px;
+                height: calc(100vh - 70px);
+            }
+            .sidebar.active {
+                right: 0;
+                z-index: 1003;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Progress Bar -->
+    <div class="progress-bar" id="progressBar"></div>
+    <!-- Back to Top Button -->
+    <div class="back-to-top" id="backToTop">
+        <i class="fas fa-arrow-up"></i>
+    </div>
+    <!-- Navigation -->
+    <nav>
+        <div class="nav-container">
+            <a href="{{ url_for('teacher_home') }}" class="logo">
+                <i class="fas fa-graduation-cap"></i>
+                Smart Classroom - Teacher Portal
+            </a>
+            <div class="hamburger" id="hamburger">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+    </nav>
+    <!-- Sidebar Menu -->
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-menu">
+            <a href="{{ url_for('teacher_home') }}" class="sidebar-item active">
+                <span>Home</span>
+                <i class="fas fa-home"></i>
+            </a>
+            <a href="{{ url_for('teacher_assignment') }}" class="sidebar-item">
+                <span>Post an Assignment</span>
+                <i class="fas fa-calendar-alt"></i>
+            </a>
+            <a href="{{ url_for('teacher_notice') }}" class="sidebar-item">
+                <span>Post a Notice</span>
+                <i class="fas fa-bell"></i>
+            </a>
+            <a href="{{ url_for('teacher_recorded_class') }}" class="sidebar-item">
+                <span>Recorded Classes</span>
+                <i class="fas fa-video"></i>
+            </a>
+            <a href="{{ url_for('teacher_query') }}" class="sidebar-item">
+                <span>Send a Query</span>
+                <i class="fas fa-question-circle"></i>
+            </a>
+            <a href="{{ url_for('teacher_fa') }}" class="sidebar-item">
+                <span>Faculty Advisor</span>
+                <i class="fas fa-user-graduate"></i>
+            </a>
+            <a href="{{ url_for('teacher_study') }}" class="sidebar-item">
+                <span>Upload Study Material</span>
+                <i class="fas fa-book"></i>
+            </a>
+            <a href="{{ url_for('teacher_analytics') }}" class="sidebar-item">
+                <span>Students Analytics Dashboard</span>
+                <i class="fas fa-chart-bar"></i>
+            </a>
+            <a href="{{ url_for('teacher_attendance') }}" class="sidebar-item">
+                <span>Attendance Management</span>
+                <i class="fas fa-calendar-check"></i>
+            </a>
+            <a href="{{ url_for('teacher_profile') }}" class="sidebar-item">
+                <span>Teacher Profile</span>
+                <i class="fas fa-user"></i>
+            </a>
+            <a href="{{ url_for('teacher_notes') }}" class="sidebar-item">
+                <span>Recorded Notes</span>
+                <i class="fas fa-sticky-note"></i>
+            </a>
+            <a href="{{ url_for('teacher_settings') }}" class="sidebar-item">
+                <span>Settings</span>
+                <i class="fas fa-cog"></i>
+            </a>
+        </div>
+    </div>
+    <!-- Main Content -->
+    <main>
+        <div class="container visible">
+            <h1>Welcome to Teacher Portal</h1>
+            <p>Your personalized teaching dashboard</p>
+            
+            <!-- Teacher Details Section -->
+            <div class="teacher-details">
+                <h3>Teacher Information</h3>
+                <div class="teacher-info">
+                    <div class="info-item">
+                        <div class="info-label">Name:</div>
+                        <div class="info-value">{{ teacher_data.name | default('Unknown Teacher') }}</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Employee ID:</div>
+                        <div class="info-value">{{ teacher_data.employeeId | default('Not available') }}</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Email:</div>
+                        <div class="info-value">{{ teacher_data.email | default('Not available') }}</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Phone:</div>
+                        <div class="info-value">{{ teacher_data.phone | default('Not available') }}</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Specialization:</div>
+                        <div class="info-value">{{ teacher_data.subject | default('Not available') }}</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Department Section -->
+            <div class="department-section">
+                <h3>Department</h3>
+                <p>{{ teacher_data.department | default('Not available') }}</p>
+            </div>
+
+            <!-- Upcoming Class Section -->
+            <div class="upcoming-class-section">
+                <h3>Upcoming Classes</h3>
+                <div class="upcoming-class">
+                    <div class="time">10:00 AM - 11:30 AM</div>
+                    <div class="details">Mathematics - Algebra Lecture (Room 301)</div>
+                </div>
+                <div class="upcoming-class">
+                    <div class="time">2:00 PM - 3:30 PM</div>
+                    <div class="details">Physics - Mechanics Workshop (Lab 102)</div>
+                </div>
+            </div>
+
+            <!-- Notices Section -->
+            <div class="notices-section">
+                <h3>Recent Notices</h3>
+                <ul class="notice-list">
+                    <li class="notice-item">
+                        <div class="notice-date">September 27, 2025</div>
+                        <div class="notice-title">Mid-Term Exam Schedule</div>
+                        <div class="notice-content">The mid-term exam schedule has been released. Check the portal for details.</div>
+                    </li>
+                    <li class="notice-item">
+                        <div class="notice-date">September 26, 2025</div>
+                        <div class="notice-title">Guest Lecture</div>
+                        <div class="notice-content">Join us for a guest lecture on AI in Education this Friday at 4 PM.</div>
+                    </li>
+                </ul>
+                <a href="{{ url_for('teacher_notice') }}" class="view-all-btn">View All Notices</a>
+            </div>
+        </div>
+    </main>
+    <script>
+        // JavaScript for sidebar toggle, scroll progress, and back-to-top
+        document.addEventListener('DOMContentLoaded', function () {
+            const hamburger = document.getElementById('hamburger');
+            const sidebar = document.getElementById('sidebar');
+            const progressBar = document.getElementById('progressBar');
+            const backToTop = document.getElementById('backToTop');
+            const container = document.querySelector('.container');
+
+            // Sidebar toggle
+            hamburger.addEventListener('click', function () {
+                hamburger.classList.toggle('active');
+                sidebar.classList.toggle('active');
+            });
+
+            // Scroll progress bar
+            window.addEventListener('scroll', function () {
+                const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+                const scrollHeight = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+                const scrollPercentage = (scrollTop / scrollHeight) * 100;
+                progressBar.style.width = scrollPercentage + '%';
+            });
+
+            // Back to top button visibility
+            window.addEventListener('scroll', function () {
+                if (window.pageYOffset > 300) {
+                    backToTop.classList.add('visible');
+                } else {
+                    backToTop.classList.remove('visible');
+                }
+            });
+
+            // Back to top functionality
+            backToTop.addEventListener('click', function () {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            });
+
+            // Container animation on load
+            setTimeout(() => {
+                container.classList.add('visible');
+            }, 100);
+
+            // Close sidebar when clicking a menu item (for mobile)
+            const sidebarItems = document.querySelectorAll('.sidebar-item');
+            sidebarItems.forEach(item => {
+                item.addEventListener('click', function () {
+                    if (window.innerWidth <= 768) {
+                        hamburger.classList.remove('active');
+                        sidebar.classList.remove('active');
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

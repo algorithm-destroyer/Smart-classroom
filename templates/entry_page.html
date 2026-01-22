@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Classroom Portal Selection</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* General Styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif; /* Changed font to Poppins for a modern feel */
+        }
+        
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+
+        /* Color Palette inspired by Tutorgo */
+        :root {
+            --primary-blue: #0A1B4F; /* Dark blue, similar to Tutorgo's header */
+            --secondary-blue: #1C3373; /* Slightly lighter blue for accents */
+            --accent-green: #2ecc71; /* Green from Tutorgo's buttons/accents */
+            --text-dark: #333;
+            --text-light: #f4f7fa; /* Light text for dark backgrounds */
+            --bg-light: #f8faff; /* Very light background for main content */
+            --white: #ffffff;
+            --grey-text: #6e7a8e; /* Lighter grey for descriptions */
+            --shadow-light: rgba(0, 0, 0, 0.08);
+            --shadow-medium: rgba(0, 0, 0, 0.15);
+            --transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1); /* Smoother transition */
+        }
+        
+        body {
+            background: linear-gradient(135deg, #e0f2f7, #c7e8f0); /* Lighter, more vibrant background */
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            overflow-x: hidden;
+            color: var(--text-dark);
+            position: relative;
+        }
+
+        /* Abstract shapes (inspired by Tutorgo background) */
+        body::before, body::after {
+            content: '';
+            position: absolute;
+            background-repeat: no-repeat;
+            opacity: 0.1;
+            z-index: -1;
+        }
+        body::before {
+            width: 300px;
+            height: 300px;
+            top: -50px;
+            left: -50px;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'%3E%3Cdefs%3E%3ClinearGradient id='a' x1='0%' y1='0%' x2='100%' y2='100%'%3E%3Cstop offset='0%' stop-color='%231C3373'/%3E%3Cstop offset='100%' stop-color='%230A1B4F'/%3E%3C/linearGradient%3E%3C/defs%3E%3Ccircle cx='100' cy='100' r='90' fill='url(%23a)'/%3E%3C/svg%3E");
+            transform: rotate(30deg);
+            animation: moveShape1 10s infinite alternate;
+        }
+        body::after {
+            width: 250px;
+            height: 250px;
+            bottom: -70px;
+            right: -70px;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'%3E%3Cdefs%3E%3ClinearGradient id='a' x1='0%' y1='0%' x2='100%' y2='100%'%3E%3Cstop offset='0%' stop-color='%232ecc71'/%3E%3Cstop offset='100%' stop-color='%231C3373'/%3E%3C/linearGradient%3E%3C/defs%3E%3Cpolygon points='100,0 200,75 160,200 40,200 0,75' fill='url(%23a)'/%3E%3C/svg%3E");
+            transform: rotate(-45deg);
+            animation: moveShape2 12s infinite alternate-reverse;
+        }
+
+        @keyframes moveShape1 {
+            from { transform: translate(-50px, -50px) rotate(30deg); }
+            to { transform: translate(50px, 50px) rotate(60deg); }
+        }
+        @keyframes moveShape2 {
+            from { transform: translate(70px, 70px) rotate(-45deg); }
+            to { transform: translate(-70px, -70px) rotate(-15deg); }
+        }
+        
+        /* Loading Screen */
+        .loader-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: var(--primary-blue);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            transition: opacity 0.6s ease, visibility 0.6s ease;
+        }
+
+        .loader {
+            width: 70px;
+            height: 70px;
+            border: 6px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: var(--accent-green); /* Use accent color for loader */
+            animation: spin 1s linear infinite; /* Changed to linear for constant spin */
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Progress Bar */
+        .progress-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 5px; /* Slightly thicker */
+            background-color: var(--accent-green);
+            box-shadow: 0 0 10px var(--accent-green); /* Glow effect */
+            z-index: 1001;
+            width: 0;
+            transition: width 0.2s linear;
+        }
+
+        /* Back to Top Button */
+        .back-to-top {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 55px; /* Slightly larger */
+            height: 55px;
+            background-color: var(--secondary-blue); /* Darker blue */
+            color: var(--white);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            opacity: 0;
+            visibility: hidden;
+            transition: var(--transition);
+            box-shadow: 0 5px 15px var(--shadow-medium);
+            z-index: 1000;
+        }
+
+        .back-to-top:hover {
+            background-color: var(--accent-green); /* Accent color on hover */
+            transform: translateY(-8px) scale(1.05); /* More pronounced hover */
+            box-shadow: 0 8px 20px var(--accent-green);
+        }
+
+        .back-to-top.visible {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        .container {
+            width: 90%;
+            max-width: 1200px;
+            text-align: center;
+            opacity: 0;
+            transform: translateY(30px);
+            transition: opacity 1s cubic-bezier(0.25, 0.8, 0.25, 1), transform 1s cubic-bezier(0.25, 0.8, 0.25, 1);
+            padding: 3rem 0;
+        }
+
+        .container.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        .logo {
+            margin-bottom: 3rem; /* More spacing */
+            animation: fadeInDown 1.2s ease forwards;
+        }
+        
+        .logo h1 {
+            color: var(--primary-blue);
+            font-size: 3.5rem; /* Larger font */
+            margin-bottom: 0.8rem;
+            position: relative;
+            display: inline-block;
+            font-weight: 700; /* Bolder */
+        }
+
+        .logo h1::after {
+            content: '';
+            position: absolute;
+            bottom: -10px; /* Adjust position */
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 4px; /* Thicker underline */
+            background: linear-gradient(90deg, var(--secondary-blue), var(--accent-green));
+            animation: expandWidth 1.8s cubic-bezier(0.25, 0.8, 0.25, 1) forwards;
+            border-radius: 2px;
+        }
+
+        @keyframes expandWidth {
+            from { width: 0; }
+            to { width: 100%; }
+        }
+        
+        .logo p {
+            color: var(--grey-text);
+            font-size: 1.3rem; /* Slightly larger */
+            margin-top: 1.5rem;
+            animation: fadeInUp 1.2s ease 0.3s forwards;
+            opacity: 0;
+            font-weight: 400;
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-40px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .portal-selection {
+            display: flex;
+            justify-content: center;
+            gap: 2.5rem; /* More space between cards */
+            margin-top: 4rem;
+            flex-wrap: wrap;
+        }
+        
+        .portal-card {
+            background: var(--white);
+            border: none; /* Removed border */
+            width: 350px; /* Slightly larger cards */
+            height: auto; /* Auto height for content */
+            min-height: 320px;
+            padding: 2.5rem; /* More padding */
+            cursor: pointer;
+            transition: var(--transition);
+            border-radius: 20px; /* More rounded corners */
+            box-shadow: 0 10px 30px var(--shadow-light); /* Softer shadow */
+            position: relative;
+            overflow: hidden;
+            opacity: 0;
+            transform: translateY(50px);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .portal-card.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Staggered animation for cards */
+        .portal-card:nth-child(1) { transition-delay: 0.2s; }
+        .portal-card:nth-child(2) { transition-delay: 0.4s; }
+        .portal-card:nth-child(3) { transition-delay: 0.6s; }
+        
+        .portal-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 6px; /* Thicker top line */
+            background: linear-gradient(90deg, var(--primary-blue), var(--accent-green));
+            transform: translateX(-100%);
+            transition: transform 0.6s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+        
+        .portal-card:hover::before {
+            transform: translateX(0);
+        }
+        
+        .portal-card:hover {
+            transform: translateY(-15px) scale(1.03); /* More pronounced lift and slight scale */
+            box-shadow: 0 20px 40px var(--shadow-medium); /* Stronger shadow on hover */
+        }
+        
+        .portal-icon {
+            font-size: 4.5rem; /* Larger icon */
+            margin-bottom: 1.5rem;
+            transition: var(--transition);
+            display: inline-block;
+            animation: float 3s infinite ease-in-out; /* Smooth floating animation */
+            color: var(--secondary-blue); /* Color for icons */
+        }
+
+        @keyframes float {
+            0% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+            100% { transform: translateY(0); }
+        }
+        
+        .portal-card:hover .portal-icon {
+            transform: translateY(-5px) scale(1.1); /* Subtle lift and scale */
+            animation-play-state: paused;
+            color: var(--accent-green); /* Accent color on hover */
+        }
+        
+        .portal-card h3 {
+            color: var(--primary-blue);
+            margin-bottom: 1rem;
+            font-size: 1.8rem; /* Larger heading */
+            transition: var(--transition);
+            font-weight: 600;
+        }
+        
+        .portal-card:hover h3 {
+            color: var(--accent-green);
+        }
+        
+        .portal-card p {
+            color: var(--grey-text);
+            font-size: 1.1rem; /* Slightly larger text */
+            line-height: 1.8;
+            margin-bottom: 2rem;
+            flex-grow: 1; /* Allows text to take available space */
+        }
+        
+        .portal-button {
+            background: var(--primary-blue);
+            color: var(--white);
+            border: none;
+            padding: 1rem 2rem; /* More padding */
+            font-weight: 600; /* Bolder text */
+            cursor: pointer;
+            width: 100%;
+            font-size: 1.1rem; /* Larger font */
+            border-radius: 30px;
+            transition: var(--transition);
+            position: relative;
+            overflow: hidden;
+            z-index: 1;
+            letter-spacing: 0.5px; /* Spacing for better readability */
+        }
+
+        .portal-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%; /* Start from outside left */
+            width: 100%;
+            height: 100%;
+            background-color: var(--accent-green);
+            transition: left 0.4s ease; /* Slide in from left */
+            z-index: -1;
+        }
+
+        .portal-button:hover::before {
+            left: 0;
+        }
+        
+        .portal-button:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(46, 204, 113, 0.4); /* Accent color shadow */
+            color: var(--white); /* Ensure text stays white */
+        }
+
+        .portal-card:last-child .portal-button {
+            /* If admin button is disabled or different style */
+            background-color: var(--secondary-blue);
+            cursor: not-allowed;
+            opacity: 0.8;
+        }
+        .portal-card:last-child .portal-button::before {
+             background-color: var(--primary-blue); /* Different hover for admin */
+        }
+        .portal-card:last-child .portal-button:hover {
+            box-shadow: 0 8px 20px rgba(28, 51, 115, 0.4);
+            transform: translateY(0); /* No lift for disabled-like button */
+        }
+        
+        .footer {
+            margin-top: 5rem; /* More space from cards */
+            color: var(--grey-text);
+            font-size: 1rem;
+            opacity: 0;
+            animation: fadeIn 1.2s ease 1s forwards;
+            padding-bottom: 2rem;
+        }
+
+        @keyframes fadeIn {
+            to { opacity: 1; }
+        }
+        
+        .social-links {
+            margin-top: 1.5rem;
+            display: flex;
+            justify-content: center;
+            gap: 1.5rem; /* Space out icons */
+        }
+
+        .social-links a {
+            color: var(--secondary-blue);
+            font-size: 1.8rem; /* Larger icons */
+            transition: var(--transition);
+        }
+
+        .social-links a:hover {
+            color: var(--accent-green);
+            transform: translateY(-5px) scale(1.1); /* Lift and scale */
+        }
+        
+        @media (max-width: 768px) {
+            .logo h1 {
+                font-size: 2.8rem;
+            }
+            .logo p {
+                font-size: 1.1rem;
+            }
+            .portal-selection {
+                flex-direction: column;
+                align-items: center;
+                gap: 1.5rem;
+            }
+            .portal-card {
+                width: 90%;
+                max-width: 320px;
+                padding: 2rem;
+            }
+            .portal-icon {
+                font-size: 4rem;
+            }
+            .portal-card h3 {
+                font-size: 1.6rem;
+            }
+            .portal-card p {
+                font-size: 1rem;
+            }
+            .portal-button {
+                font-size: 1rem;
+                padding: 0.9rem 1.8rem;
+            }
+            .back-to-top {
+                width: 45px;
+                height: 45px;
+                bottom: 20px;
+                right: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Loading Screen -->
+    <div class="loader-container" id="loader">
+        <div class="loader"></div>
+    </div>
+
+    <!-- Progress Bar -->
+    <div class="progress-bar" id="progressBar"></div>
+
+    <!-- Back to Top Button -->
+    <div class="back-to-top" id="backToTop">
+        <i class="fas fa-arrow-up"></i>
+    </div>
+    
+    <div class="container" id="container">
+        <div class="logo">
+            <h1>Smart Classroom</h1>
+            <p>Your Digital Learning Platform for the Future</p>
+        </div>
+        
+        <div class="portal-selection">
+            <div class="portal-card" onclick="goToPortal('student')">
+                <div class="portal-icon">
+                    🎓
+                </div>
+                <h3>Student Portal</h3>
+                <p>Access your personalized learning paths, track progress, collaborate with peers, and submit assignments effortlessly.</p>
+                <button class="portal-button">Enter Student Portal</button>
+            </div>
+            
+            <div class="portal-card" onclick="goToPortal('teacher')">
+                <div class="portal-icon">
+                    👩‍🏫
+                </div>
+                <h3>Teacher Portal</h3>
+                <p>Efficiently manage your courses, create engaging content, provide feedback, and connect with your students.</p>
+                <button class="portal-button">Enter Teacher Portal</button>
+            </div>
+            
+            <div class="portal-card" onclick="goToPortal('admin')">
+                <div class="portal-icon">
+                    🛡️
+                </div>
+                <h3>Admin Portal</h3>
+                <p>Oversee entire school operations, manage user accounts, analyze performance data, and configure system settings.</p>
+                <button class="portal-button">Enter Admin Portal</button>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p>&copy;Smart Classroom. All rights reserved.</p>
+            <div class="social-links">
+                <a href="#" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
+                <a href="#" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
+                <a href="#" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+                <a href="#" aria-label="LinkedIn"><i class="fab fa-linkedin-in"></i></a>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Loading Screen
+        window.addEventListener('load', function() {
+            setTimeout(function() {
+                document.getElementById('loader').style.opacity = '0';
+                document.getElementById('loader').style.visibility = 'hidden';
+                
+                // Show container after loader disappears
+                document.getElementById('container').classList.add('visible');
+                
+                // Show portal cards with staggered animation
+                setTimeout(() => {
+                    document.querySelectorAll('.portal-card').forEach(card => {
+                        card.classList.add('visible');
+                    });
+                }, 300); // Slight delay for cards to appear after container
+            }, 1000); // Loader visible for 1 second
+        });
+
+        // Progress Bar
+        window.addEventListener('scroll', function() {
+            const scrollPosition = window.scrollY;
+            const documentHeight = document.documentElement.scrollHeight - window.innerHeight;
+            // Prevent division by zero if document is not scrollable
+            const scrollPercentage = documentHeight > 0 ? (scrollPosition / documentHeight) * 100 : 0;
+            document.getElementById('progressBar').style.width = scrollPercentage + '%';
+        });
+
+        // Back to Top Button
+        const backToTopButton = document.getElementById('backToTop');
+        
+        window.addEventListener('scroll', function() {
+            if (window.scrollY > 400) { // Show button after scrolling more
+                backToTopButton.classList.add('visible');
+            } else {
+                backToTopButton.classList.remove('visible');
+            }
+        });
+        
+        backToTopButton.addEventListener('click', function() {
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        });
+        
+        function goToPortal(portal) {
+            // Add a small animation before redirecting
+            const portalCard = event.currentTarget;
+            portalCard.style.transform = 'translateY(-5px) scale(0.98)'; /* Click animation */
+            
+            setTimeout(() => {
+                portalCard.style.transform = ''; // Reset transform
+                
+                switch(portal) {
+                    case 'student':
+                        window.location.href = '/login'; // Updated to redirect to /login
+                        break;
+                    case 'teacher':
+                        window.location.href = '/teacher_login';
+                        break;
+                    case 'admin':
+                        window.location.href = '/admin_login';
+                        break;
+                    default:
+                        console.error('Invalid portal selected');
+                }
+            }, 300); // Delay for animation to play
+        }
+    </script>
+</body>
+</html>
