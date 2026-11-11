@@ -485,7 +485,7 @@
     <!-- Navigation -->
     <nav>
         <div class="nav-container">
-            <a href="teacher_home.html" class="logo">
+            <a href="{{ url_for('teacher_home') }}" class="logo">
                 <i class="fas fa-graduation-cap"></i>
                 Smart Classroom - Teacher Portal
             </a>
@@ -499,51 +499,51 @@
     <!-- Sidebar Menu -->
     <div class="sidebar" id="sidebar">
         <div class="sidebar-menu">
-            <a href="teacher_home.html" class="sidebar-item">
+            <a href="{{ url_for('teacher_home') }}" class="sidebar-item">
                 <span>Home</span>
                 <i class="fas fa-home"></i>
             </a>
-            <a href="teacher_assignment.html" class="sidebar-item">
+            <a href="{{ url_for('teacher_assignment') }}" class="sidebar-item">
                 <span>Post an Assignment</span>
                 <i class="fas fa-calendar-alt"></i>
             </a>
-            <a href="teacher_notice.html" class="sidebar-item">
+            <a href="{{ url_for('teacher_notice') }}" class="sidebar-item">
                 <span>Post a Notice</span>
                 <i class="fas fa-bell"></i>
             </a>
-            <a href="teacher_recorded_class.html" class="sidebar-item">
+            <a href="{{ url_for('teacher_recorded_class') }}" class="sidebar-item">
                 <span>Recorded Classes</span>
                 <i class="fas fa-video"></i>
             </a>
-            <a href="teacher_query.html" class="sidebar-item">
+            <a href="{{ url_for('teacher_query') }}" class="sidebar-item">
                 <span>Send a Query</span>
                 <i class="fas fa-question-circle"></i>
             </a>
-            <a href="fa.html" class="sidebar-item">
+            <a href="{{ url_for('teacher_fa') }}" class="sidebar-item">
                 <span>Faculty Advisor</span>
                 <i class="fas fa-user-graduate"></i>
             </a>
-            <a href="teacher_study.html" class="sidebar-item">
+            <a href="{{ url_for('teacher_study') }}" class="sidebar-item">
                 <span>Upload Study Material</span>
                 <i class="fas fa-book"></i>
             </a>
-            <a href="teacher_analytics.html" class="sidebar-item">
+            <a href="{{ url_for('teacher_analytics') }}" class="sidebar-item">
                 <span>Students Analytics Dashboard</span>
                 <i class="fas fa-chart-bar"></i>
             </a>
-            <a href="teacher_attendance.html" class="sidebar-item active">
+            <a href="{{ url_for('teacher_attendance') }}" class="sidebar-item active">
                 <span>Attendance Management</span>
                 <i class="fas fa-calendar-check"></i>
             </a>
-            <a href="teacher_profile.html" class="sidebar-item">
+            <a href="{{ url_for('teacher_profile') }}" class="sidebar-item">
                 <span>Teacher Profile</span>
                 <i class="fas fa-user"></i>
             </a>
-            <a href="teacher_notes.html" class="sidebar-item">
+            <a href="{{ url_for('teacher_notes') }}" class="sidebar-item">
                 <span>Recorded Notes</span>
                 <i class="fas fa-sticky-note"></i>
             </a>
-            <a href="teacher_settings.html" class="sidebar-item">
+            <a href="{{ url_for('teacher_settings') }}" class="sidebar-item">
                 <span>Settings</span>
                 <i class="fas fa-cog"></i>
             </a>
@@ -673,23 +673,22 @@
         </div>
     </main>
     <script>
-        // Hardcoded student and attendance data
-        const students = [
-            { regNo: '289', name: 'Sanjay R' },
-            { regNo: '288', name: 'Nishanth V' },
-            { regNo: '290', name: 'Santhosh M' },
-            { regNo: '313', name: 'Harish V' },
-            { regNo: '318', name: 'Akshayashree S' },
-            { regNo: '279', name: 'Shamitha S' }
-        ];
-        const attendanceRecords = students.map(student => ({
-            date: '2025-09-28',
-            student_id: student.regNo,
-            name: student.name,
-            hour: '1st Hour',
-            status: 'Absent',
-            timestamp: new Date().toISOString()
-        }));
+        let students = [];
+        let attendanceRecords = [];
+        let sessionTimer = null;
+        let sessionStartTime = null;
+        let isSessionActive = false;
+
+        function escapeHtml(value) {
+            return String(value ?? '').replace(/[&<>"']/g, function(ch) {
+                return {'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'}[ch];
+            });
+        }
+
+        function csvCell(value) {
+            const text = String(value ?? '');
+            return '"' + text.replace(/"/g, '""') + '"';
+        }
 
         // Content Animation
         window.addEventListener('load', function() {
@@ -753,10 +752,6 @@
             });
         });
 
-        let sessionTimer = null;
-        let sessionStartTime = null;
-        let isSessionActive = false;
-
         function openTab(evt, tabName) {
             const tabContents = document.getElementsByClassName("tab-content");
             for (let i = 0; i < tabContents.length; i++) {
@@ -779,7 +774,6 @@
         }
 
         function checkSessionStatus() {
-            // Simulate session status (default inactive)
             if (isSessionActive) {
                 document.getElementById('session-status-text').textContent = 'Active';
                 document.getElementById('session-indicator').classList.remove('status-inactive');
@@ -787,7 +781,9 @@
                 document.getElementById('start-session').disabled = true;
                 document.getElementById('stop-session').disabled = false;
                 if (!sessionTimer) {
-                    sessionStartTime = new Date();
+                    if (!sessionStartTime || isNaN(sessionStartTime.getTime())) {
+                        sessionStartTime = new Date();
+                    }
                     updateSessionTimer();
                     sessionTimer = setInterval(updateSessionTimer, 1000);
                 }
@@ -800,15 +796,15 @@
                 if (sessionTimer) {
                     clearInterval(sessionTimer);
                     sessionTimer = null;
-                    document.getElementById('session-timer').textContent = '';
                 }
+                document.getElementById('session-timer').textContent = '';
             }
         }
 
         function updateSessionTimer() {
             if (!sessionStartTime) return;
             const now = new Date();
-            const elapsed = Math.floor((now - sessionStartTime) / 1000);
+            const elapsed = Math.max(0, Math.floor((now - sessionStartTime) / 1000));
             const hours = Math.floor(elapsed / 3600);
             const minutes = Math.floor((elapsed % 3600) / 60);
             const seconds = elapsed % 60;
@@ -816,16 +812,89 @@
             document.getElementById('session-timer').textContent = 'Session duration: ' + formattedTime;
         }
 
-        function startAttendanceSession() {
-            isSessionActive = true;
-            checkSessionStatus();
-            console.log('Attendance session started.');
+        async function fetchAttendanceData() {
+            try {
+                const [sessionRes, recordsRes] = await Promise.all([
+                    fetch('/api/attendance/session'),
+                    fetch('/api/attendance/records')
+                ]);
+                const sessionData = await sessionRes.json();
+                const recordsData = await recordsRes.json();
+
+                if (sessionRes.ok && sessionData.status === 'success') {
+                    const info = sessionData.session || {};
+                    isSessionActive = Boolean(info.active);
+                    sessionStartTime = info.started_at ? new Date(info.started_at) : (isSessionActive ? new Date() : null);
+                }
+                if (recordsRes.ok && recordsData.status === 'success') {
+                    students = recordsData.students || [];
+                    attendanceRecords = recordsData.records || [];
+                }
+                checkSessionStatus();
+                loadOverviewData();
+                loadAttendanceData();
+                loadStudentSelect();
+            } catch (err) {
+                console.error('Error loading attendance data:', err);
+            }
         }
 
-        function stopAttendanceSession() {
-            isSessionActive = false;
-            checkSessionStatus();
-            console.log('Attendance session stopped.');
+        async function startAttendanceSession() {
+            try {
+                const res = await fetch('/api/attendance/session', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: 'start' })
+                });
+                const data = await res.json();
+                if (!res.ok || data.status !== 'success') {
+                    throw new Error(data.message || 'Failed to start session');
+                }
+                const info = data.session || {};
+                isSessionActive = Boolean(info.active);
+                sessionStartTime = info.started_at ? new Date(info.started_at) : new Date();
+                checkSessionStatus();
+            } catch (err) {
+                alert('Error starting session: ' + err.message);
+            }
+        }
+
+        async function stopAttendanceSession() {
+            try {
+                const res = await fetch('/api/attendance/session', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: 'stop' })
+                });
+                const data = await res.json();
+                if (!res.ok || data.status !== 'success') {
+                    throw new Error(data.message || 'Failed to stop session');
+                }
+                isSessionActive = false;
+                sessionStartTime = null;
+                checkSessionStatus();
+            } catch (err) {
+                alert('Error stopping session: ' + err.message);
+            }
+        }
+
+        function buildRecordRow(record) {
+            const row = document.createElement('tr');
+            const isPresent = record.status === 'Present';
+            row.innerHTML = `
+                <td>${escapeHtml(record.date)}</td>
+                <td>${escapeHtml(record.student_id)}</td>
+                <td>${escapeHtml(record.name)}</td>
+                <td>${escapeHtml(record.hour)}</td>
+                <td>
+                    <select class="status-select" data-date="${escapeHtml(record.date)}" data-id="${escapeHtml(record.student_id)}" data-hour="${escapeHtml(record.hour)}">
+                        <option value="Present" ${isPresent ? 'selected' : ''}>Present</option>
+                        <option value="Absent" ${!isPresent ? 'selected' : ''}>Absent</option>
+                    </select>
+                </td>
+                <td><button type="button" class="save-btn" onclick="saveStatus(this)">Save</button></td>
+            `;
+            return row;
         }
 
         function loadOverviewData() {
@@ -849,21 +918,7 @@
                 return;
             }
             recentRecords.forEach(record => {
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${record.date}</td>
-                    <td>${record.student_id}</td>
-                    <td>${record.name}</td>
-                    <td>${record.hour}</td>
-                    <td>
-                        <select class="status-select" data-date="${record.date}" data-id="${record.student_id}" data-hour="${record.hour}">
-                            <option value="Present" ${record.status === 'Present' ? 'selected' : ''}>Present</option>
-                            <option value="Absent" ${record.status === 'Absent' ? 'selected' : ''}>Absent</option>
-                        </select>
-                    </td>
-                    <td><button class="save-btn" onclick="saveStatus(this)">Save</button></td>
-                `;
-                recentTableBody.appendChild(row);
+                recentTableBody.appendChild(buildRecordRow(record));
             });
         }
 
@@ -875,47 +930,44 @@
                 return;
             }
             attendanceRecords.forEach(record => {
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${record.date}</td>
-                    <td>${record.student_id}</td>
-                    <td>${record.name}</td>
-                    <td>${record.hour}</td>
-                    <td>
-                        <select class="status-select" data-date="${record.date}" data-id="${record.student_id}" data-hour="${record.hour}">
-                            <option value="Present" ${record.status === 'Present' ? 'selected' : ''}>Present</option>
-                            <option value="Absent" ${record.status === 'Absent' ? 'selected' : ''}>Absent</option>
-                        </select>
-                    </td>
-                    <td><button class="save-btn" onclick="saveStatus(this)">Save</button></td>
-                `;
-                attendanceTableBody.appendChild(row);
+                attendanceTableBody.appendChild(buildRecordRow(record));
             });
         }
 
-        function saveStatus(button) {
+        async function saveStatus(button) {
             const select = button.parentElement.previousElementSibling.querySelector('.status-select');
-            if (select) {
-                const newStatus = select.value;
-                const date = select.dataset.date;
-                const studentId = select.dataset.id;
-                const hour = select.dataset.hour;
-                // Update the hardcoded attendanceRecords
-                const record = attendanceRecords.find(r => r.date === date && r.student_id === studentId && r.hour === hour);
-                if (record) {
-                    record.status = newStatus;
-                    console.log(`Attendance status updated for ${studentId} on ${date} (${hour}) to ${newStatus}`);
-                    if (document.getElementById('overview-tab').classList.contains('active')) {
-                        loadOverviewData();
-                    } else if (document.getElementById('attendance-tab').classList.contains('active')) {
-                        loadAttendanceData();
-                    }
+            if (!select) return;
+            const newStatus = select.value;
+            const date = select.dataset.date;
+            const studentId = select.dataset.id;
+            const hour = select.dataset.hour;
+            const origText = button.textContent;
+            button.disabled = true;
+            button.textContent = 'Saving...';
+            try {
+                const res = await fetch('/api/attendance/mark', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ regNo: studentId, date, hour, status: newStatus })
+                });
+                const data = await res.json();
+                if (!res.ok || data.status !== 'success') {
+                    throw new Error(data.message || 'Failed to save attendance');
                 }
+                await fetchAttendanceData();
+                button.textContent = 'Saved!';
+                setTimeout(() => { button.textContent = origText; }, 1000);
+            } catch (err) {
+                alert('Error saving attendance: ' + err.message);
+                button.textContent = origText;
+            } finally {
+                button.disabled = false;
             }
         }
 
         function loadStudentSelect() {
             const studentSelect = document.getElementById('student-select');
+            const currentValue = studentSelect.value;
             while (studentSelect.options.length > 1) {
                 studentSelect.remove(1);
             }
@@ -925,6 +977,7 @@
                 option.textContent = `${student.name} (${student.regNo})`;
                 studentSelect.appendChild(option);
             });
+            if (currentValue) studentSelect.value = currentValue;
         }
 
         function loadStudentDetails() {
@@ -959,8 +1012,8 @@
                     <h3>Student Details</h3>
                     <div class="student-info">
                         <div class="student-data">
-                            <div class="student-name">${student.name}</div>
-                            <div class="student-id">ID: ${studentId}</div>
+                            <div class="student-name">${escapeHtml(student.name)}</div>
+                            <div class="student-id">ID: ${escapeHtml(studentId)}</div>
                             <div class="student-stats">
                                 <span class="status-present">Present: ${presentCount}</span> | 
                                 <span class="status-absent">Absent: ${absentCount}</span> | 
@@ -973,8 +1026,8 @@
                         ${attendanceHistory.length > 0 ?
                             attendanceHistory.map(record => `
                                 <div class="history-item">
-                                    <span class="history-date">${record.date} (${record.hour})</span>
-                                    <span class="history-status ${record.status.toLowerCase()}">${record.status}</span>
+                                    <span class="history-date">${escapeHtml(record.date)} (${escapeHtml(record.hour)})</span>
+                                    <span class="history-status ${escapeHtml((record.status || '').toLowerCase())}">${escapeHtml(record.status)}</span>
                                 </div>
                             `).join('') : '<p>No attendance records found for this student</p>'
                         }
@@ -983,37 +1036,26 @@
             `;
         }
 
-        function filterAttendance() {
+        function getFilteredRecords() {
             const fromDate = document.getElementById('from-date').value;
             const toDate = document.getElementById('to-date').value;
+            return attendanceRecords.filter(record => {
+                if (fromDate && record.date < fromDate) return false;
+                if (toDate && record.date > toDate) return false;
+                return true;
+            });
+        }
+
+        function filterAttendance() {
             const attendanceTableBody = document.querySelector('#attendance-table tbody');
             attendanceTableBody.innerHTML = '';
-            let filteredRecords = attendanceRecords;
-            if (fromDate && toDate) {
-                filteredRecords = attendanceRecords.filter(record => 
-                    record.date >= fromDate && record.date <= toDate
-                );
-            }
+            const filteredRecords = getFilteredRecords();
             if (filteredRecords.length === 0) {
                 attendanceTableBody.innerHTML = '<tr><td colspan="6" class="no-data">No attendance records found for the selected date range</td></tr>';
                 return;
             }
             filteredRecords.forEach(record => {
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${record.date}</td>
-                    <td>${record.student_id}</td>
-                    <td>${record.name}</td>
-                    <td>${record.hour}</td>
-                    <td>
-                        <select class="status-select" data-date="${record.date}" data-id="${record.student_id}" data-hour="${record.hour}">
-                            <option value="Present" ${record.status === 'Present' ? 'selected' : ''}>Present</option>
-                            <option value="Absent" ${record.status === 'Absent' ? 'selected' : ''}>Absent</option>
-                        </select>
-                    </td>
-                    <td><button class="save-btn" onclick="saveStatus(this)">Save</button></td>
-                `;
-                attendanceTableBody.appendChild(row);
+                attendanceTableBody.appendChild(buildRecordRow(record));
             });
         }
 
@@ -1023,73 +1065,65 @@
             loadAttendanceData();
         }
 
-        function exportAllData() {
-            if (attendanceRecords.length === 0) {
-                console.log('No attendance records to export');
+        function downloadCsv(records, filename) {
+            if (!records || records.length === 0) {
+                alert('No attendance records to export.');
                 return;
             }
-            let csvContent = "data:text/csv;charset=utf-8,";
-            csvContent += "Date,Student ID,Name,Hour,Status,Timestamp\n";
-            attendanceRecords.forEach(record => {
-                csvContent += `${record.date},${record.student_id},${record.name},${record.hour},${record.status},${record.timestamp}\n`;
+            const lines = ['Date,Student ID,Name,Hour,Status,Timestamp'];
+            records.forEach(record => {
+                lines.push([
+                    csvCell(record.date),
+                    csvCell(record.student_id),
+                    csvCell(record.name),
+                    csvCell(record.hour),
+                    csvCell(record.status),
+                    csvCell(record.timestamp || '')
+                ].join(','));
             });
-            const encodedUri = encodeURI(csvContent);
+            const blob = new Blob([lines.join('\n')], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
             const link = document.createElement("a");
-            link.setAttribute("href", encodedUri);
-            link.setAttribute("download", `attendance_all_${new Date().toISOString().split('T')[0]}.csv`);
+            link.href = url;
+            link.download = filename;
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
-            console.log('All attendance data exported.');
+            URL.revokeObjectURL(url);
+        }
+
+        function exportAllData() {
+            downloadCsv(attendanceRecords, `attendance_all_${new Date().toISOString().split('T')[0]}.csv`);
         }
 
         function exportFilteredData() {
-            const fromDate = document.getElementById('from-date').value;
-            const toDate = document.getElementById('to-date').value;
-            let filteredRecords = attendanceRecords;
-            if (fromDate && toDate) {
-                filteredRecords = attendanceRecords.filter(record => 
-                    record.date >= fromDate && record.date <= toDate
-                );
-            }
-            if (filteredRecords.length === 0) {
-                console.log('No attendance records found for the selected date range');
-                return;
-            }
-            let csvContent = "data:text/csv;charset=utf-8,";
-            csvContent += "Date,Student ID,Name,Hour,Status,Timestamp\n";
-            filteredRecords.forEach(record => {
-                csvContent += `${record.date},${record.student_id},${record.name},${record.hour},${record.status},${record.timestamp}\n`;
-            });
-            const encodedUri = encodeURI(csvContent);
-            const link = document.createElement("a");
-            link.setAttribute("href", encodedUri);
-            link.setAttribute("download", `attendance_${fromDate || 'all'}_to_${toDate || 'all'}.csv`);
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            console.log('Filtered attendance data exported.');
+            const fromDate = document.getElementById('from-date').value || 'all';
+            const toDate = document.getElementById('to-date').value || 'all';
+            downloadCsv(getFilteredRecords(), `attendance_${fromDate}_to_${toDate}.csv`);
         }
 
         function refreshData() {
-            loadOverviewData();
-            checkSessionStatus();
-            console.log('Data refreshed.');
+            fetchAttendanceData();
         }
 
-        function clearAllData() {
-            if (confirm('Are you sure you want to clear all attendance data? This action cannot be undone.')) {
-                attendanceRecords.length = 0;
-                loadOverviewData();
-                console.log('All attendance data cleared.');
+        async function clearAllData() {
+            if (!confirm('Are you sure you want to clear all attendance data? This action cannot be undone.')) return;
+            try {
+                const res = await fetch('/api/attendance/clear_all', { method: 'POST' });
+                const data = await res.json();
+                if (!res.ok || data.status !== 'success') {
+                    throw new Error(data.message || 'Failed to clear data');
+                }
+                await fetchAttendanceData();
+            } catch (err) {
+                alert('Error clearing attendance: ' + err.message);
             }
         }
 
         document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('start-session').addEventListener('click', startAttendanceSession);
             document.getElementById('stop-session').addEventListener('click', stopAttendanceSession);
-            loadOverviewData();
-            checkSessionStatus();
+            fetchAttendanceData();
             document.querySelector('.container').classList.add('visible');
         });
     </script>

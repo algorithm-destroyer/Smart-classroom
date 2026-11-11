@@ -345,14 +345,14 @@
             }
             
             const formData = {
-                name: form.name.value,
+                name: form.name.value.trim(),
                 gender: form.gender.value,
                 dob: form.dob.value,
-                email: form.email.value,
-                employeeId: form.employeeId.value,
-                department: form.department.value,
-                subject: form.subject.value,
-                phone: form.phone.value,
+                email: form.email.value.trim(),
+                employeeId: form.employeeId.value.trim(),
+                department: form.department.value.trim(),
+                subject: form.subject.value.trim(),
+                phone: form.phone.value.trim(),
                 password: password
             };
             

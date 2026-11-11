@@ -650,23 +650,23 @@
                 <div class="stats-container">
                     <div class="stat-card">
                         <h3>Total Students</h3>
-                        <div class="stat-value">45</div>
-                        <div class="stat-change positive">+3 from last month</div>
+                        <div class="stat-value">{{ analytics.total_students }}</div>
+                        <div class="stat-change positive">Registered students</div>
                     </div>
                     <div class="stat-card">
                         <h3>Average Attendance</h3>
-                        <div class="stat-value">87%</div>
-                        <div class="stat-change positive">+2% from last month</div>
+                        <div class="stat-value">{{ analytics.avg_attendance }}%</div>
+                        <div class="stat-change positive">Across {{ analytics.total_attendance_days }} day(s)</div>
                     </div>
                     <div class="stat-card">
                         <h3>Average Score</h3>
-                        <div class="stat-value">78%</div>
-                        <div class="stat-change negative">-1% from last month</div>
+                        <div class="stat-value">{{ analytics.avg_score }}%</div>
+                        <div class="stat-change {{ 'positive' if analytics.avg_score >= 75 else 'negative' }}">Class mean score</div>
                     </div>
                     <div class="stat-card">
                         <h3>Passing Rate</h3>
-                        <div class="stat-value">92%</div>
-                        <div class="stat-change positive">+4% from last month</div>
+                        <div class="stat-value">{{ analytics.passing_rate }}%</div>
+                        <div class="stat-change positive">Students scoring 60%+</div>
                     </div>
                 </div>
             </div>
@@ -678,26 +678,12 @@
                     <div class="chart-title">Average Scores by Subject</div>
                     <div class="chart">
                         <div class="bar-chart">
-                            <div class="bar" style="height: 85%;">
-                                <div class="bar-value">85%</div>
-                                <div class="bar-label">Mathematics</div>
+                            {% for item in analytics.subject_averages %}
+                            <div class="bar" style="height: {{ item.average }}%;">
+                                <div class="bar-value">{{ item.average }}%</div>
+                                <div class="bar-label">{{ item.subject }}</div>
                             </div>
-                            <div class="bar" style="height: 78%;">
-                                <div class="bar-value">78%</div>
-                                <div class="bar-label">Physics</div>
-                            </div>
-                            <div class="bar" style="height: 82%;">
-                                <div class="bar-value">82%</div>
-                                <div class="bar-label">Chemistry</div>
-                            </div>
-                            <div class="bar" style="height: 75%;">
-                                <div class="bar-value">75%</div>
-                                <div class="bar-label">Biology</div>
-                            </div>
-                            <div class="bar" style="height: 90%;">
-                                <div class="bar-value">90%</div>
-                                <div class="bar-label">English</div>
-                            </div>
+                            {% endfor %}
                         </div>
                     </div>
                 </div>
@@ -705,21 +691,21 @@
                 <div class="chart-container">
                     <div class="chart-title">Grade Distribution</div>
                     <div class="chart">
-                        <div class="pie-chart">
-                            <div class="pie-center">75%</div>
+                        <div class="pie-chart" style="background: {{ 'conic-gradient(var(--accent-green) 0% ' ~ analytics.grade_distribution.a_pct ~ '%, #ffc107 ' ~ analytics.grade_distribution.a_pct ~ '% ' ~ analytics.grade_distribution.ab_stop ~ '%, #f44336 ' ~ analytics.grade_distribution.ab_stop ~ '% 100%)' if analytics.total_students else '#d8dde7' }};">
+                            <div class="pie-center">{{ analytics.grade_distribution.a_pct }}%</div>
                         </div>
                         <div class="pie-legend">
                             <div class="legend-item">
                                 <div class="legend-color" style="background: var(--accent-green);"></div>
-                                <span>A Grade (75%)</span>
+                                <span>A Grade ({{ analytics.grade_distribution.a_pct }}%)</span>
                             </div>
                             <div class="legend-item">
                                 <div class="legend-color" style="background: #ffc107;"></div>
-                                <span>B Grade (15%)</span>
+                                <span>B Grade ({{ analytics.grade_distribution.b_pct }}%)</span>
                             </div>
                             <div class="legend-item">
                                 <div class="legend-color" style="background: #f44336;"></div>
-                                <span>C Grade (10%)</span>
+                                <span>C Grade ({{ analytics.grade_distribution.c_pct }}%)</span>
                             </div>
                         </div>
                     </div>
@@ -734,21 +720,18 @@
                         <label for="class-filter">Class</label>
                         <select id="class-filter">
                             <option>All Classes</option>
-                            <option>Class 10A</option>
-                            <option>Class 10B</option>
-                            <option>Class 11A</option>
-                            <option>Class 11B</option>
+                            {% for cls in analytics.classes %}
+                            <option>{{ cls }}</option>
+                            {% endfor %}
                         </select>
                     </div>
                     <div class="filter-group">
                         <label for="subject-filter">Subject</label>
                         <select id="subject-filter">
                             <option>All Subjects</option>
-                            <option>Mathematics</option>
-                            <option>Physics</option>
-                            <option>Chemistry</option>
-                            <option>Biology</option>
-                            <option>English</option>
+                            {% for subj in analytics.subjects %}
+                            <option>{{ subj }}</option>
+                            {% endfor %}
                         </select>
                     </div>
                     <div class="filter-group">
@@ -782,14 +765,18 @@
                         </thead>
                         <tbody>
                             {% for student in students %}
-                            <tr>
+                            <tr data-regno="{{ student.regNo }}">
                                 <td>{{ student.regNo }}</td>
                                 <td>{{ student.name }}</td>
                                 <td>{{ student.class }}</td>
                                 <td>{{ student.attendance }}</td>
                                 <td>{{ student.avg_score }}</td>
                                 <td><span class="performance-badge {{ student.performance.lower() }}">{{ student.performance }}</span></td>
-                                <td><button class="portal-button">View Details</button></td>
+                                <td><button type="button" class="portal-button view-details-btn" data-regno="{{ student.regNo }}">View Details</button></td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="7" style="text-align: center; color: var(--grey-text); padding: 1.5rem;">No student records available yet.</td>
                             </tr>
                             {% endfor %}
                         </tbody>
@@ -798,7 +785,30 @@
             </div>
         </div>
     </main>
+
+    <!-- Student Details Modal -->
+    <div id="studentModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.55); z-index:2000; align-items:center; justify-content:center; padding:1rem;" role="dialog" aria-labelledby="modalStudentName" aria-hidden="true">
+        <div style="background:var(--white); border-radius:12px; max-width:520px; width:100%; padding:1.5rem 2rem; box-shadow:0 15px 40px rgba(10,27,79,0.25); position:relative;">
+            <button type="button" id="closeStudentModal" aria-label="Close modal" style="position:absolute; top:1rem; right:1.25rem; background:none; border:none; font-size:1.5rem; cursor:pointer; color:var(--primary-blue);">&times;</button>
+            <h3 id="modalStudentName" style="color:var(--primary-blue); margin-bottom:0.5rem;">Student Details</h3>
+            <p id="modalStudentMeta" style="text-align:left; font-size:0.95rem; margin-bottom:1rem;"></p>
+            <div id="modalStudentSubjects"></div>
+        </div>
+    </div>
+
     <script>
+        const studentsData = {{ students | tojson }};
+        const studentByRegNo = {};
+        studentsData.forEach(s => {
+            studentByRegNo[String(s.regNo)] = s;
+        });
+
+        function escapeHtml(value) {
+            return String(value ?? '').replace(/[&<>"']/g, function(ch) {
+                return {'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'}[ch];
+            });
+        }
+
         // Content Animation
         window.addEventListener('load', function() {
             document.querySelectorAll('.container').forEach(section => {
@@ -873,13 +883,19 @@
             const performanceFilter = document.getElementById('performance-filter').value;
             const searchValue = document.getElementById('search-student').value.toLowerCase();
 
-            const rows = document.querySelectorAll('.student-table tbody tr');
+            const rows = document.querySelectorAll('.student-table tbody tr[data-regno]');
 
             rows.forEach(row => {
+                const regNo = row.getAttribute('data-regno');
+                const student = studentByRegNo[regNo] || {};
                 const className = row.cells[2].textContent;
-                const performance = row.cells[5].textContent.toLowerCase();
                 const studentName = row.cells[1].textContent.toLowerCase();
                 const studentId = row.cells[0].textContent.toLowerCase();
+                const subjectsMap = student.subjects || {};
+
+                let displayScore = student.avg_score || row.cells[4].textContent;
+                let numericScore = typeof student.avg_score_num === 'number' ? student.avg_score_num : parseFloat(displayScore) || 0;
+                let perfText = student.performance || row.cells[5].textContent;
 
                 let showRow = true;
 
@@ -887,14 +903,32 @@
                     showRow = false;
                 }
 
+                if (showRow && subjectFilter !== 'All Subjects') {
+                    if (Object.prototype.hasOwnProperty.call(subjectsMap, subjectFilter)) {
+                        numericScore = Math.round(Number(subjectsMap[subjectFilter]));
+                        displayScore = numericScore + '%';
+                        perfText = numericScore >= 90 ? 'Excellent' : (numericScore >= 75 ? 'Good' : (numericScore >= 60 ? 'Average' : 'Poor'));
+                    } else {
+                        showRow = false;
+                    }
+                }
+
+                row.cells[4].textContent = displayScore;
+                const badgeEl = row.cells[5].querySelector('.performance-badge');
+                if (badgeEl) {
+                    badgeEl.textContent = perfText;
+                    badgeEl.className = 'performance-badge ' + perfText.toLowerCase();
+                }
+
                 if (showRow && performanceFilter !== 'All Levels') {
-                    if (performanceFilter === 'Excellent (90%+)' && performance !== 'excellent') {
+                    const pLower = perfText.toLowerCase();
+                    if (performanceFilter === 'Excellent (90%+)' && pLower !== 'excellent') {
                         showRow = false;
-                    } else if (performanceFilter === 'Good (75-89%)' && performance !== 'good') {
+                    } else if (performanceFilter === 'Good (75-89%)' && pLower !== 'good') {
                         showRow = false;
-                    } else if (performanceFilter === 'Average (60-74%)' && performance !== 'average') {
+                    } else if (performanceFilter === 'Average (60-74%)' && pLower !== 'average') {
                         showRow = false;
-                    } else if (performanceFilter === 'Poor (<60%)' && performance !== 'poor') {
+                    } else if (performanceFilter === 'Poor (<60%)' && pLower !== 'poor') {
                         showRow = false;
                     }
                 }
@@ -908,6 +942,46 @@
                 row.style.display = showRow ? '' : 'none';
             });
         }
+
+        // Student Details Modal
+        const studentModal = document.getElementById('studentModal');
+        const closeStudentModal = document.getElementById('closeStudentModal');
+
+        function openStudentModal(regNo) {
+            const s = studentByRegNo[String(regNo)];
+            if (!s) return;
+            document.getElementById('modalStudentName').textContent = `${s.name} (${s.regNo})`;
+            document.getElementById('modalStudentMeta').textContent =
+                `Class: ${s.class} | Attendance: ${s.attendance} | Average Score: ${s.avg_score} | Submissions: ${s.submissions_count}`;
+            const subjHtml = Object.entries(s.subjects || {}).map(([subj, score]) => `
+                <div style="display:flex; justify-content:space-between; padding:0.5rem 0; border-bottom:1px solid #eee;">
+                    <span style="color:var(--primary-blue); font-weight:500;">${escapeHtml(subj)}</span>
+                    <span style="font-weight:600; color:var(--secondary-blue);">${escapeHtml(score)}%</span>
+                </div>
+            `).join('') || '<p>No subject scores recorded.</p>';
+            document.getElementById('modalStudentSubjects').innerHTML = subjHtml;
+            studentModal.style.display = 'flex';
+            studentModal.setAttribute('aria-hidden', 'false');
+        }
+
+        document.querySelector('.student-table tbody').addEventListener('click', function(e) {
+            const btn = e.target.closest('.view-details-btn');
+            if (btn) {
+                openStudentModal(btn.getAttribute('data-regno'));
+            }
+        });
+
+        closeStudentModal.addEventListener('click', () => {
+            studentModal.style.display = 'none';
+            studentModal.setAttribute('aria-hidden', 'true');
+        });
+
+        studentModal.addEventListener('click', (e) => {
+            if (e.target === studentModal) {
+                studentModal.style.display = 'none';
+                studentModal.setAttribute('aria-hidden', 'true');
+            }
+        });
     </script>
 </body>
 </html>

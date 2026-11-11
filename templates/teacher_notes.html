@@ -585,54 +585,101 @@
         const deleteCurrentBtn = document.getElementById('delete-current-note-btn');
         const notesContainer = document.getElementById('notesContainer');
 
+        function escapeHtml(value) {
+            return String(value ?? '').replace(/[&<>"']/g, function(ch) {
+                return {'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'}[ch];
+            });
+        }
+
         function showStatus(msg, duration = 2200) {
             status.textContent = msg;
             setTimeout(() => { status.textContent = ''; }, duration);
         }
 
-        function loadNotes() {
-            const notes = JSON.parse(localStorage.getItem('liveClassNotesFolder')) || [];
-            notesContainer.innerHTML = notes.length ? '' : '<p class="empty-state">No saved notes yet. Start recording!</p>';
+        async function loadNotes() {
+            try {
+                const res = await fetch('/api/notes');
+                const data = await res.json();
+                if (!res.ok || data.status !== 'success') {
+                    throw new Error(data.message || 'Failed to load notes');
+                }
+                const notes = data.notes || [];
+                notesContainer.innerHTML = notes.length ? '' : '<p class="empty-state">No saved notes yet. Start recording!</p>';
 
-            notes.forEach((note, index) => {
-                const noteEl = document.createElement('div');
-                noteEl.className = 'note';
-                noteEl.innerHTML = `
-                    <div class="note-time">${new Date(note.timestamp).toLocaleString()}</div>
-                    <div class="note-text">${note.text}</div>
-                    <div class="note-actions">
-                        <button class="btn-delete-note" onclick="deleteNote(${index})">
-                            <i class="fas fa-trash"></i> Delete
-                        </button>
-                    </div>
-                `;
-                notesContainer.appendChild(noteEl);
-            });
+                notes.forEach((note) => {
+                    const noteEl = document.createElement('div');
+                    noteEl.className = 'note';
+                    const displayDate = note.created_at
+                        ? new Date(note.created_at).toLocaleString()
+                        : (note.date || 'Recent');
+                    const noteBody = note.content || note.text || '';
+                    const noteTitle = note.title ? `<strong>${escapeHtml(note.title)}</strong><br>` : '';
+                    noteEl.innerHTML = `
+                        <div class="note-time">${escapeHtml(displayDate)}</div>
+                        <div class="note-text">${noteTitle}${escapeHtml(noteBody)}</div>
+                        <div class="note-actions">
+                            <button type="button" class="btn-delete-note">
+                                <i class="fas fa-trash"></i> Delete
+                            </button>
+                        </div>
+                    `;
+                    noteEl.querySelector('.btn-delete-note').addEventListener('click', () => deleteNote(note.id));
+                    notesContainer.appendChild(noteEl);
+                });
+            } catch (err) {
+                console.error('Failed to load notes:', err);
+                notesContainer.innerHTML = '<p class="empty-state">Unable to load saved notes.</p>';
+            }
         }
 
-        function saveNote() {
+        async function saveNote() {
             const text = transcriptArea.value.trim();
             if (!text) return showStatus('⚠️ Cannot save an empty note.');
-            
-            const notes = JSON.parse(localStorage.getItem('liveClassNotesFolder')) || [];
-            notes.push({ text, timestamp: Date.now() });
-            localStorage.setItem('liveClassNotesFolder', JSON.stringify(notes));
-            showStatus('✅ Note saved successfully!');
-            loadNotes();
+
+            const firstLine = text.split('\n')[0].trim().slice(0, 60);
+            const title = firstLine || 'Class Note';
+            try {
+                const res = await fetch('/api/notes', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ title, text, content: text })
+                });
+                const data = await res.json();
+                if (!res.ok || data.status !== 'success') {
+                    throw new Error(data.message || 'Failed to save note');
+                }
+                showStatus('✅ Note saved successfully!');
+                await loadNotes();
+            } catch (err) {
+                showStatus('⚠️ ' + (err.message || 'Unable to save note.'));
+            }
         }
 
-        function deleteNote(index) {
+        async function deleteNote(noteId) {
             if (!confirm('Delete this saved note?')) return;
-            const notes = JSON.parse(localStorage.getItem('liveClassNotesFolder')) || [];
-            notes.splice(index, 1);
-            localStorage.setItem('liveClassNotesFolder', JSON.stringify(notes));
-            showStatus('🗑️ Note deleted.');
-            loadNotes();
+            try {
+                const res = await fetch(`/api/notes/${encodeURIComponent(noteId)}`, {
+                    method: 'DELETE'
+                });
+                const data = await res.json();
+                if (!res.ok || data.status !== 'success') {
+                    throw new Error(data.message || 'Failed to delete note');
+                }
+                showStatus('🗑️ Note deleted.');
+                await loadNotes();
+            } catch (err) {
+                showStatus('⚠️ ' + (err.message || 'Unable to delete note.'));
+            }
         }
 
         // Speech Recognition
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
         let recognition = null;
+        let finalTranscript = '';
+
+        transcriptArea.addEventListener('input', () => {
+            finalTranscript = transcriptArea.value;
+        });
 
         if (SpeechRecognition) {
             recognition = new SpeechRecognition();
@@ -641,6 +688,7 @@
             recognition.lang = 'en-US';
 
             recognition.onstart = () => {
+                finalTranscript = transcriptArea.value ? transcriptArea.value.trimEnd() + ' ' : '';
                 showStatus('🎤 Listening... Speak clearly now.');
                 startBtn.disabled = true;
                 stopBtn.disabled = false;
@@ -648,16 +696,15 @@
 
             recognition.onresult = (event) => {
                 let interim = '';
-                let final = '';
                 for (let i = event.resultIndex; i < event.results.length; ++i) {
                     const transcriptPart = event.results[i][0].transcript;
                     if (event.results[i].isFinal) {
-                        final += transcriptPart + ' ';
+                        finalTranscript += transcriptPart.trim() + ' ';
                     } else {
                         interim += transcriptPart;
                     }
                 }
-                transcriptArea.value = final + interim;
+                transcriptArea.value = finalTranscript + interim;
             };
 
             recognition.onerror = (event) => {
@@ -682,6 +729,7 @@
         deleteCurrentBtn.addEventListener('click', () => {
             if (transcriptArea.value.trim() && confirm('Clear current transcript?')) {
                 transcriptArea.value = '';
+                finalTranscript = '';
                 showStatus('Current text cleared.');
             }
         });

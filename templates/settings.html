@@ -432,7 +432,7 @@
     <div id="mySidebar" class="sidebar" role="navigation" aria-label="Main navigation">
         <div class="sidebar-menu">
             <a href="javascript:void(0)" class="closebtn" onclick="closeNav()" aria-label="Close menu">&times;</a>
-            <a href="home" class="sidebar-item">
+            <a href="/home" class="sidebar-item">
                 <span>Home</span>
                 <i class="fas fa-home"></i>
             </a>
@@ -440,7 +440,7 @@
                 <span>Attendance</span>
                 <i class="fas fa-user-check"></i>
             </a>
-            <a href="assignment.html" class="sidebar-item">
+            <a href="assignments.html" class="sidebar-item">
                 <span>Assignment</span>
                 <i class="fas fa-calendar-alt"></i>
             </a>
@@ -502,7 +502,7 @@
                     <div class="setting-label">Email Notifications</div>
                     <div class="setting-control">
                         <label class="switch">
-                            <input type="checkbox" id="emailToggle" checked aria-label="Toggle email notifications">
+                            <input type="checkbox" id="emailToggle" {% if user_data.email_notifications is not defined or user_data.email_notifications %}checked{% endif %} aria-label="Toggle email notifications">
                             <span class="slider round"></span>
                         </label>
                     </div>
@@ -614,6 +614,27 @@
                     openNav();
                 }
             });
+
+            const emailToggle = document.getElementById('emailToggle');
+            if (emailToggle) {
+                emailToggle.addEventListener('change', async function() {
+                    const enabled = this.checked;
+                    try {
+                        const res = await fetch('/api/update_settings', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ email_notifications: enabled })
+                        });
+                        const data = await res.json();
+                        if (!res.ok || data.status !== 'success') {
+                            throw new Error(data.message || 'Failed to update settings');
+                        }
+                    } catch (error) {
+                        this.checked = !enabled;
+                        alert('Error updating notification preference: ' + error.message);
+                    }
+                });
+            }
         });
     </script>
 </body>

@@ -1354,11 +1354,28 @@
         });
 
         // Contact Form Submission
-        document.getElementById('contactForm').addEventListener('submit', function(e) {
+        document.getElementById('contactForm').addEventListener('submit', async function(e) {
             e.preventDefault();
-            const selectedLang = document.getElementById('language-selector').value;
-            const submitMessage = translations[selectedLang].contact.form.submit || 'Form submitted!';
-            alert(submitMessage + ' This is a placeholder for actual form submission logic.');
+            const form = e.target;
+            const nameInput = form.querySelector('input[type="text"]');
+            const emailInput = form.querySelector('input[type="email"]');
+            const msgInput = form.querySelector('textarea');
+            try {
+                const res = await fetch('/api/contact', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        name: nameInput ? nameInput.value.trim() : '',
+                        email: emailInput ? emailInput.value.trim() : '',
+                        message: msgInput ? msgInput.value.trim() : ''
+                    })
+                });
+                const data = await res.json();
+                alert(data.message || 'Thank you for your message!');
+                if (data.status === 'success') form.reset();
+            } catch (err) {
+                alert('Unable to send message right now. Please try again later.');
+            }
         });
     </script>
 </body>

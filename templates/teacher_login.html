@@ -553,9 +553,12 @@
     }
 
     async function performLogin() {
+      const rememberCheckbox = document.getElementById("remember");
+      const loginIdVal = document.getElementById("login-id").value.trim();
       const formData = {
-        loginId: document.getElementById("login-id").value.trim(),
-        password: document.getElementById("password").value
+        loginId: loginIdVal,
+        password: document.getElementById("password").value,
+        remember: Boolean(rememberCheckbox && rememberCheckbox.checked)
       };
       const serverMessage = document.getElementById("server-message");
       const loginButton = document.querySelector(".login-btn");
@@ -577,6 +580,11 @@
         serverMessage.style.display = 'block';
 
         if (result.status === 'success') {
+          if (rememberCheckbox && rememberCheckbox.checked) {
+            localStorage.setItem('rememberTeacherLoginId', loginIdVal);
+          } else {
+            localStorage.removeItem('rememberTeacherLoginId');
+          }
           setTimeout(() => {
             window.location.href = '/teacher_home.html';
           }, 1500);
@@ -603,6 +611,12 @@
     // Initial captcha generation on load
     document.addEventListener("DOMContentLoaded", function() {
       generateCaptcha();
+      const savedTeacherId = localStorage.getItem('rememberTeacherLoginId');
+      if (savedTeacherId) {
+        document.getElementById("login-id").value = savedTeacherId;
+        const rememberCheckbox = document.getElementById("remember");
+        if (rememberCheckbox) rememberCheckbox.checked = true;
+      }
       // Ensure register-link is visible after page load
       const registerLink = document.querySelector('.register-link');
       registerLink.style.opacity = '1';

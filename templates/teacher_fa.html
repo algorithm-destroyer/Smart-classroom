@@ -410,7 +410,7 @@
     <!-- Navigation -->
     <nav>
         <div class="nav-container">
-            <a href="teacher_home.html" class="logo">
+            <a href="{{ url_for('teacher_home') }}" class="logo">
                 <i class="fas fa-graduation-cap"></i>
                 Smart Classroom - Teacher Portal
             </a>
@@ -424,51 +424,51 @@
     <!-- Sidebar Menu -->
     <div class="sidebar" id="sidebar">
         <div class="sidebar-menu">
-            <a href="teacher_home.html" class="sidebar-item">
+            <a href="{{ url_for('teacher_home') }}" class="sidebar-item">
                 <span>Home</span>
                 <i class="fas fa-home"></i>
             </a>
-            <a href="teacher_assignment.html" class="sidebar-item">
+            <a href="{{ url_for('teacher_assignment') }}" class="sidebar-item">
                 <span>Post an Assignment</span>
                 <i class="fas fa-calendar-alt"></i>
             </a>
-            <a href="teacher_notice.html" class="sidebar-item">
+            <a href="{{ url_for('teacher_notice') }}" class="sidebar-item">
                 <span>Post a Notice</span>
                 <i class="fas fa-bell"></i>
             </a>
-            <a href="teacher_recorded_class.html" class="sidebar-item">
+            <a href="{{ url_for('teacher_recorded_class') }}" class="sidebar-item">
                 <span>Recorded Classes</span>
                 <i class="fas fa-video"></i>
             </a>
-            <a href="teacher_query.html" class="sidebar-item">
+            <a href="{{ url_for('teacher_query') }}" class="sidebar-item">
                 <span>Send a Query</span>
                 <i class="fas fa-question-circle"></i>
             </a>
-            <a href="teacher_fa.html" class="sidebar-item active">
+            <a href="{{ url_for('teacher_fa') }}" class="sidebar-item active">
                 <span>Faculty Advisor</span>
                 <i class="fas fa-user-graduate"></i>
             </a>
-            <a href="teacher_study.html" class="sidebar-item">
+            <a href="{{ url_for('teacher_study') }}" class="sidebar-item">
                 <span>Upload Study Material</span>
                 <i class="fas fa-book"></i>
             </a>
-            <a href="teacher_analytics.html" class="sidebar-item">
+            <a href="{{ url_for('teacher_analytics') }}" class="sidebar-item">
                 <span>Students Analytics Dashboard</span>
                 <i class="fas fa-chart-bar"></i>
             </a>
-            <a href="teacher_attendance.html" class="sidebar-item">
+            <a href="{{ url_for('teacher_attendance') }}" class="sidebar-item">
                 <span>Attendance Management</span>
                 <i class="fas fa-calendar-check"></i>
             </a>
-            <a href="teacher_profile.html" class="sidebar-item">
+            <a href="{{ url_for('teacher_profile') }}" class="sidebar-item">
                 <span>Teacher Profile</span>
                 <i class="fas fa-user"></i>
             </a>
-            <a href="teacher_notes.html" class="sidebar-item">
+            <a href="{{ url_for('teacher_notes') }}" class="sidebar-item">
                 <span>Recorded Notes</span>
                 <i class="fas fa-sticky-note"></i>
             </a>
-            <a href="teacher_settings.html" class="sidebar-item">
+            <a href="{{ url_for('teacher_settings') }}" class="sidebar-item">
                 <span>Settings</span>
                 <i class="fas fa-cog"></i>
             </a>
@@ -528,7 +528,7 @@
                         </div>
                         <div class="info-item">
                             <div class="info-label">Students:</div>
-                            <div class="info-value">30</div>
+                            <div class="info-value">{{ students|length if students else 0 }}</div>
                         </div>
                         <div class="info-item">
                             <div class="info-label">Topic:</div>

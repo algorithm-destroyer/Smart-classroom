@@ -454,7 +454,7 @@
                 <span>Attendance</span>
                 <i class="fas fa-user-check"></i>
             </a>
-            <a href="assignment.html" class="sidebar-item active">
+            <a href="assignments.html" class="sidebar-item active">
                 <span>Assignment</span>
                 <i class="fas fa-calendar-alt"></i>
             </a>
@@ -493,45 +493,129 @@
             <!-- Assignments Section -->
             <div class="assignments-section">
                 <h3>Latest Assignments</h3>
-                <ul class="assignment-list">
+                <ul class="assignment-list" id="assignmentList">
                     <li class="assignment-item">
-                        <div class="assignment-title">Database Management Systems - Assignment 1</div>
-                        <div class="assignment-details">Posted by: Prof. Smith | Due: October 30, 2025</div>
-                        <div class="assignment-content">Complete the ER diagram for the given case study and write SQL queries for the provided dataset.</div>
-                        <div class="assignment-upload">
-                            <label for="upload1" class="upload-label">Upload Answer</label>
-                            <input type="file" id="upload1" accept=".pdf,.doc,.docx">
-                            <span class="upload-status">No file uploaded</span>
-                        </div>
-                    </li>
-                    <li class="assignment-item">
-                        <div class="assignment-title">Data Structures - Assignment 2</div>
-                        <div class="assignment-details">Posted by: Dr. Jones | Due: November 5, 2025</div>
-                        <div class="assignment-content">Implement a binary search tree with insert, delete, and search operations in Python.</div>
-                        <div class="assignment-upload">
-                            <label for="upload2" class="upload-label">Upload Answer</label>
-                            <input type="file" id="upload2" accept=".py,.zip">
-                            <span class="upload-status">No file uploaded</span>
-                        </div>
-                    </li>
-                    <li class="assignment-item">
-                        <div class="assignment-title">Operating Systems - Assignment 3</div>
-                        <div class="assignment-details">Posted by: Prof. Lee | Due: November 10, 2025</div>
-                        <div class="assignment-content">Analyze the given scheduling algorithms and provide a comparative study.</div>
-                        <div class="assignment-upload">
-                            <label for="upload3" class="upload-label">Upload Answer</label>
-                            <input type="file" id="upload3" accept=".pdf,.doc,.docx">
-                            <span class="upload-status">No file uploaded</span>
-                        </div>
+                        <div class="assignment-title">Loading assignments...</div>
+                        <div class="assignment-details">Please wait while assignments load.</div>
                     </li>
                 </ul>
-                <a href="assignment.html" class="view-all-btn">View All Assignments</a>
+                <a href="assignments.html" class="view-all-btn">View All Assignments</a>
             </div>
         </div>
     </main>
     <script>
+        function escapeHtml(value) {
+            return String(value ?? '').replace(/[&<>"']/g, function(ch) {
+                return {'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'}[ch];
+            });
+        }
+
+        async function loadAssignments() {
+            const list = document.getElementById('assignmentList');
+            try {
+                const res = await fetch('/api/assignments');
+                const data = await res.json();
+                if (!res.ok || data.status !== 'success') {
+                    throw new Error(data.message || 'Failed to load assignments');
+                }
+                const assignments = data.assignments || [];
+                list.innerHTML = '';
+                if (assignments.length === 0) {
+                    list.innerHTML = '<li class="assignment-item"><div class="assignment-title">No assignments posted yet</div><div class="assignment-content">Check back later for new assignments.</div></li>';
+                    return;
+                }
+
+                assignments.forEach((assignment, idx) => {
+                    const item = document.createElement('li');
+                    item.className = 'assignment-item';
+
+                    const titleText = assignment.subject
+                        ? `${assignment.subject} - ${assignment.title}`
+                        : (assignment.title || 'Untitled Assignment');
+                    const inputId = `upload-${assignment.id || idx}`;
+                    const dueText = assignment.due_display || assignment.due_date || 'No due date';
+                    const teacherText = assignment.teacher_name || 'Teacher';
+                    const acceptFormats = assignment.accepted_formats || '.pdf,.doc,.docx,.py,.zip,.txt,.png,.jpg,.jpeg';
+                    const submission = assignment.student_submission;
+
+                    const attachmentHtml = assignment.attachment_url
+                        ? ` | <a href="${escapeHtml(assignment.attachment_url)}" target="_blank" style="color: var(--secondary-blue); font-weight: 600;">${escapeHtml(assignment.attachment_name || 'Download Question File')}</a>`
+                        : '';
+
+                    item.innerHTML = `
+                        <div class="assignment-title">${escapeHtml(titleText)}</div>
+                        <div class="assignment-details">Posted by: ${escapeHtml(teacherText)} | Due: ${escapeHtml(dueText)}${attachmentHtml}</div>
+                        <div class="assignment-content">${escapeHtml(assignment.description || '')}</div>
+                        <div class="assignment-upload">
+                            <label for="${escapeHtml(inputId)}" class="upload-label">Upload Answer</label>
+                            <input type="file" id="${escapeHtml(inputId)}" accept="${escapeHtml(acceptFormats)}">
+                            <span class="upload-status"></span>
+                        </div>
+                    `;
+
+                    const statusEl = item.querySelector('.upload-status');
+                    if (submission && submission.filename) {
+                        statusEl.textContent = `Submitted: ${submission.filename}`;
+                        statusEl.style.color = 'var(--accent-green)';
+                        if (submission.file_url) {
+                            const link = document.createElement('a');
+                            link.href = submission.file_url;
+                            link.target = '_blank';
+                            link.textContent = ' (View)';
+                            link.style.color = 'var(--secondary-blue)';
+                            statusEl.appendChild(link);
+                        }
+                    } else {
+                        statusEl.textContent = 'No file uploaded';
+                        statusEl.style.color = 'var(--grey-text)';
+                    }
+
+                    const fileInput = item.querySelector('input[type="file"]');
+                    fileInput.addEventListener('change', async function() {
+                        if (this.files.length === 0) return;
+                        const file = this.files[0];
+                        statusEl.textContent = `Uploading: ${file.name}...`;
+                        statusEl.style.color = 'var(--secondary-blue)';
+
+                        const formData = new FormData();
+                        formData.append('file', file);
+                        try {
+                            const submitRes = await fetch(`/api/assignments/${encodeURIComponent(assignment.id)}/submit`, {
+                                method: 'POST',
+                                body: formData
+                            });
+                            const submitData = await submitRes.json();
+                            if (!submitRes.ok || submitData.status !== 'success') {
+                                throw new Error(submitData.message || 'Upload failed');
+                            }
+                            const sub = submitData.submission || {};
+                            statusEl.textContent = `Submitted: ${sub.filename || file.name}`;
+                            statusEl.style.color = 'var(--accent-green)';
+                            if (sub.file_url) {
+                                const link = document.createElement('a');
+                                link.href = sub.file_url;
+                                link.target = '_blank';
+                                link.textContent = ' (View)';
+                                link.style.color = 'var(--secondary-blue)';
+                                statusEl.appendChild(link);
+                            }
+                        } catch (err) {
+                            statusEl.textContent = `Upload failed: ${err.message}`;
+                            statusEl.style.color = '#e74c3c';
+                        }
+                    });
+
+                    list.appendChild(item);
+                });
+            } catch (error) {
+                console.error('Error loading assignments:', error);
+                list.innerHTML = '<li class="assignment-item"><div class="assignment-title">Unable to load assignments</div><div class="assignment-content">Please refresh the page to try again.</div></li>';
+            }
+        }
+
         // Loading Screen
         window.addEventListener('load', function() {
+            loadAssignments();
             setTimeout(function() {
                 document.getElementById('loader').style.opacity = '0';
                 document.getElementById('loader').style.visibility = 'hidden';
@@ -571,20 +655,6 @@
         hamburger.addEventListener('click', function() {
             hamburger.classList.toggle('active');
             sidebar.classList.toggle('active');
-        });
-
-        // File Upload Handling
-        document.querySelectorAll('input[type="file"]').forEach(input => {
-            input.addEventListener('change', function() {
-                const status = this.nextElementSibling;
-                if (this.files.length > 0) {
-                    status.textContent = `File selected: ${this.files[0].name}`;
-                    status.style.color = 'var(--accent-green)';
-                } else {
-                    status.textContent = 'No file uploaded';
-                    status.style.color = 'var(--grey-text)';
-                }
-            });
         });
     </script>
 </body>

@@ -1,0 +1,19 @@
+# Python virtual environments & bytecode
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+
+# Runtime generated temporary files and user uploads
+temp/*
+!temp/.gitkeep
+uploads/*
+!uploads/.gitkeep
+local_data/
+
+# OS / editor artifacts
+.DS_Store
+Thumbs.db
+.env

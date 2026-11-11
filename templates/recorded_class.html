@@ -693,7 +693,7 @@
     <!-- Navigation -->
     <nav>
         <div class="nav-container">
-            <a href="home.html" class="logo">
+            <a href="/home" class="logo">
                 <i class="fas fa-graduation-cap"></i>
                 Smart Classroom
             </a>
@@ -707,7 +707,7 @@
     <!-- Sidebar Menu -->
     <div class="sidebar" id="sidebar" role="navigation" aria-label="Main navigation">
         <div class="sidebar-menu">
-            <a href="home" class="sidebar-item">
+            <a href="/home" class="sidebar-item">
                 <span>Home</span>
                 <i class="fas fa-home"></i>
             </a>
@@ -715,7 +715,7 @@
                 <span>Attendance</span>
                 <i class="fas fa-user-check"></i>
             </a>
-            <a href="assignment.html" class="sidebar-item">
+            <a href="assignments.html" class="sidebar-item">
                 <span>Assignment</span>
                 <i class="fas fa-calendar-alt"></i>
             </a>
@@ -759,11 +759,6 @@
                     </label>
                     <select id="subject-filter" aria-label="Filter by subject">
                         <option value="">All Subjects</option>
-                        <option value="Mathematics">Mathematics</option>
-                        <option value="Science">Science</option>
-                        <option value="English">English</option>
-                        <option value="History">History</option>
-                        <option value="Computer Science">Computer Science</option>
                     </select>
                 </div>
                 <div class="filter-group">
@@ -806,6 +801,7 @@
             </div>
             <div class="video-modal-body">
                 <video id="modalVideo" class="video-modal-video" controls aria-label="Class recording video"></video>
+                <iframe id="modalIframe" class="video-modal-video" style="display: none; border: 0;" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen title="Class recording player"></iframe>
             </div>
             <div class="video-modal-footer">
                 <div class="video-modal-info">
@@ -839,69 +835,13 @@
     </div>
     
     <script>
-        // Sample recorded classes data
-        const recordedClasses = [
-            {
-                id: "1",
-                title: "Introduction to Algebra",
-                subject: "Mathematics",
-                teacherName: "Prof. Smith",
-                classroom: "Room A101",
-                timestamp: "2025-09-20T10:00:00Z",
-                description: "Learn the basics of algebra, including variables and equations.",
-                videoUrl: "https://www.youtube.com/embed/9vKqVkMQHKk",
-                thumbnail: "https://img.youtube.com/vi/9vKqVkMQHKk/mqdefault.jpg",
-                attachments: ["Algebra_Notes.pdf", "Practice_Problems.docx"]
-            },
-            {
-                id: "2",
-                title: "Photosynthesis Basics",
-                subject: "Science",
-                teacherName: "Dr. Green",
-                classroom: "Room B202",
-                timestamp: "2025-09-18T14:00:00Z",
-                description: "Understand the process of photosynthesis in plants.",
-                videoUrl: "https://www.youtube.com/embed/uixA8ZXx0KU",
-                thumbnail: "https://img.youtube.com/vi/uixA8ZXx0KU/mqdefault.jpg",
-                attachments: ["Photosynthesis_Slides.pdf"]
-            },
-            {
-                id: "3",
-                title: "Shakespeare's Hamlet",
-                subject: "English",
-                teacherName: "Ms. Brown",
-                classroom: "Room C303",
-                timestamp: "2025-09-15T09:00:00Z",
-                description: "Analyze key themes and characters in Hamlet.",
-                videoUrl: "https://www.youtube.com/embed/0iRr2G5qD20",
-                thumbnail: "https://img.youtube.com/vi/0iRr2G5qD20/mqdefault.jpg",
-                attachments: []
-            },
-            {
-                id: "4",
-                title: "World War II Overview",
-                subject: "History",
-                teacherName: "Mr. Davis",
-                classroom: "Room D404",
-                timestamp: "2025-09-10T11:30:00Z",
-                description: "Explore the major events of World War II.",
-                videoUrl: "https://www.youtube.com/embed/Q78COTwT7nE",
-                thumbnail: "https://img.youtube.com/vi/Q78COTwT7nE/mqdefault.jpg",
-                attachments: ["WWII_Timeline.pdf"]
-            },
-            {
-                id: "5",
-                title: "Python Programming Basics",
-                subject: "Computer Science",
-                teacherName: "Dr. Lee",
-                classroom: "Room E505",
-                timestamp: "2025-09-22T13:00:00Z",
-                description: "Introduction to Python programming for beginners.",
-                videoUrl: "https://www.youtube.com/embed/rfscVS0vtbw",
-                thumbnail: "https://img.youtube.com/vi/rfscVS0vtbw/mqdefault.jpg",
-                attachments: ["Python_Code_Examples.zip"]
-            }
-        ];
+        let recordedClasses = [];
+
+        function escapeHtml(value) {
+            return String(value ?? '').replace(/[&<>"']/g, function(ch) {
+                return {'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'}[ch];
+            });
+        }
 
         // Toggle sidebar
         function toggleNav() {
@@ -913,18 +853,59 @@
             hamburger.setAttribute('aria-expanded', isOpen);
         }
 
+        async function fetchRecordedClasses() {
+            try {
+                const res = await fetch('/api/recorded_classes');
+                const data = await res.json();
+                if (!res.ok || data.status !== 'success') {
+                    throw new Error(data.message || 'Failed to load recordings');
+                }
+                recordedClasses = data.classes || [];
+            } catch (error) {
+                console.error('Error loading recorded classes:', error);
+                recordedClasses = [];
+            }
+            populateFilters();
+            loadRecordedClasses();
+        }
+
+        // Populate subject and classroom filters dynamically
+        function populateFilters() {
+            const subjectFilter = document.getElementById('subject-filter');
+            const prevSubject = subjectFilter.value;
+            const subjects = [...new Set(recordedClasses.map(cls => cls.subject).filter(Boolean))].sort();
+            subjectFilter.innerHTML = '<option value="">All Subjects</option>';
+            subjects.forEach(subject => {
+                const option = document.createElement('option');
+                option.value = subject;
+                option.textContent = subject;
+                subjectFilter.appendChild(option);
+            });
+            if (subjects.includes(prevSubject)) subjectFilter.value = prevSubject;
+
+            const classroomFilter = document.getElementById('classroom-filter');
+            const prevClassroom = classroomFilter.value;
+            const classrooms = [...new Set(recordedClasses.map(cls => cls.classroom).filter(Boolean))].sort();
+            classroomFilter.innerHTML = '<option value="">All Classrooms</option>';
+            classrooms.forEach(classroom => {
+                const option = document.createElement('option');
+                option.value = classroom;
+                option.textContent = classroom;
+                classroomFilter.appendChild(option);
+            });
+            if (classrooms.includes(prevClassroom)) classroomFilter.value = prevClassroom;
+        }
+        
         // Load recorded classes
         function loadRecordedClasses() {
             const classesContainer = document.getElementById('classes-container');
             const emptyState = document.getElementById('empty-state');
             
-            // Get filter values
             const subjectFilter = document.getElementById('subject-filter').value;
             const classroomFilter = document.getElementById('classroom-filter').value;
             const dateFilter = document.getElementById('date-filter').value;
             
-            // Filter classes
-            let filteredClasses = recordedClasses;
+            let filteredClasses = recordedClasses.slice();
             
             if (subjectFilter) {
                 filteredClasses = filteredClasses.filter(cls => cls.subject === subjectFilter);
@@ -934,14 +915,12 @@
                 filteredClasses = filteredClasses.filter(cls => cls.classroom === classroomFilter);
             }
             
-            // Sort by date if selected
             if (dateFilter === 'latest') {
-                filteredClasses.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+                filteredClasses.sort((a, b) => new Date(b.timestamp || 0) - new Date(a.timestamp || 0));
             } else if (dateFilter === 'oldest') {
-                filteredClasses.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+                filteredClasses.sort((a, b) => new Date(a.timestamp || 0) - new Date(b.timestamp || 0));
             }
             
-            // Clear container
             classesContainer.innerHTML = '';
             
             if (!filteredClasses || filteredClasses.length === 0) {
@@ -951,10 +930,8 @@
                 emptyState.style.display = 'none';
             }
             
-            // Populate classes
             filteredClasses.forEach((cls, index) => {
-                if (!cls.id || !cls.title || !cls.subject || !cls.teacherName || !cls.classroom || !cls.timestamp) {
-                    console.warn('Invalid class data:', cls);
+                if (!cls.id || !cls.title) {
                     return;
                 }
                 
@@ -962,29 +939,31 @@
                 classCard.className = 'class-card';
                 classCard.style.animationDelay = `${index * 0.1}s`;
                 
-                // Format date
-                const date = new Date(cls.timestamp);
-                const formattedDate = date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                const date = cls.timestamp ? new Date(cls.timestamp) : null;
+                const formattedDate = date && !isNaN(date)
+                    ? date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})
+                    : (cls.timestamp || 'Recent');
+                const thumbSrc = cls.thumbnail || `https://picsum.photos/seed/${encodeURIComponent(cls.id)}/400/225.jpg`;
                 
                 classCard.innerHTML = `
                     <div class="class-thumbnail">
-                        <img src="${cls.thumbnail || 'https://picsum.photos/seed/' + cls.id + '/400/225.jpg'}" alt="${cls.title || 'Class thumbnail'}">
+                        <img src="${escapeHtml(thumbSrc)}" alt="${escapeHtml(cls.title || 'Class thumbnail')}">
                         <div class="play-icon">
                             <i class="fas fa-play"></i>
                         </div>
                     </div>
                     <div class="class-details">
-                        <div class="class-title">${cls.title || 'Untitled'}</div>
+                        <div class="class-title">${escapeHtml(cls.title || 'Untitled')}</div>
                         <div class="class-meta">
-                            <span><i class="fas fa-book"></i> ${cls.subject || 'Unknown'}</span>
-                            <span><i class="fas fa-calendar"></i> ${formattedDate}</span>
+                            <span><i class="fas fa-book"></i> ${escapeHtml(cls.subject || 'General')}</span>
+                            <span><i class="fas fa-calendar"></i> ${escapeHtml(formattedDate)}</span>
                         </div>
                         <div class="class-meta">
-                            <span><i class="fas fa-chalkboard-teacher"></i> ${cls.teacherName || 'Unknown'}</span>
-                            <span><i class="fas fa-users"></i> ${cls.classroom || 'Unknown'}</span>
+                            <span><i class="fas fa-chalkboard-teacher"></i> ${escapeHtml(cls.teacherName || 'Faculty')}</span>
+                            <span><i class="fas fa-users"></i> ${escapeHtml(cls.classroom || 'Classroom')}</span>
                         </div>
-                        <div class="class-description">${cls.description || 'No description available'}</div>
-                        <a href="#" class="view-btn" data-id="${cls.id}">
+                        <div class="class-description">${escapeHtml(cls.description || 'No description available')}</div>
+                        <a href="#" class="view-btn" data-id="${escapeHtml(cls.id)}">
                             <i class="fas fa-play-circle"></i> View Recording
                         </a>
                     </div>
@@ -994,11 +973,12 @@
             });
         }
         
-        // Open video modal
+        // Open video modal (handles both embedded URLs like YouTube and direct <video> streams)
         function openVideoModal(classData) {
             const modal = document.getElementById('videoModal');
             const modalTitle = document.getElementById('modalTitle');
             const modalVideo = document.getElementById('modalVideo');
+            const modalIframe = document.getElementById('modalIframe');
             const modalSubject = document.getElementById('modalSubject');
             const modalTeacher = document.getElementById('modalTeacher');
             const modalClassroom = document.getElementById('modalClassroom');
@@ -1006,24 +986,36 @@
             const attachmentsSection = document.getElementById('attachmentsSection');
             const attachmentsList = document.getElementById('attachmentsList');
             
-            // Validate class data
             if (!classData) {
-                console.error('Invalid class data');
                 return;
             }
             
-            // Set modal content with fallbacks
             modalTitle.textContent = classData.title || 'Untitled';
-            modalVideo.src = classData.videoUrl || '';
-            modalSubject.textContent = classData.subject || 'Unknown';
-            modalTeacher.textContent = classData.teacherName || 'Unknown';
-            modalClassroom.textContent = classData.classroom || 'Unknown';
+            const videoUrl = classData.videoUrl || '';
+            const isEmbed = classData.videoType === 'embed' || /youtube\.com\/embed|player\.vimeo\.com/i.test(videoUrl);
+
+            if (isEmbed) {
+                modalVideo.pause();
+                modalVideo.removeAttribute('src');
+                modalVideo.style.display = 'none';
+                modalIframe.src = videoUrl;
+                modalIframe.style.display = 'block';
+            } else {
+                modalIframe.src = '';
+                modalIframe.style.display = 'none';
+                modalVideo.style.display = 'block';
+                modalVideo.src = videoUrl;
+            }
+
+            modalSubject.textContent = classData.subject || 'General';
+            modalTeacher.textContent = classData.teacherName || 'Faculty';
+            modalClassroom.textContent = classData.classroom || 'Classroom';
             
-            // Format date
-            const date = new Date(classData.timestamp);
-            modalDate.textContent = date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+            const date = classData.timestamp ? new Date(classData.timestamp) : null;
+            modalDate.textContent = date && !isNaN(date)
+                ? date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})
+                : (classData.timestamp || 'Recent');
             
-            // Show attachments if any
             if (classData.attachments && Array.isArray(classData.attachments) && classData.attachments.length > 0) {
                 attachmentsSection.style.display = 'block';
                 attachmentsList.innerHTML = '';
@@ -1032,10 +1024,8 @@
                     if (attachment) {
                         const attachmentItem = document.createElement('div');
                         attachmentItem.className = 'attachment-item';
-                        attachmentItem.innerHTML = `
-                            <i class="fas fa-file"></i>
-                            <span>${attachment}</span>
-                        `;
+                        attachmentItem.innerHTML = '<i class="fas fa-file"></i><span></span>';
+                        attachmentItem.querySelector('span').textContent = attachment;
                         attachmentsList.appendChild(attachmentItem);
                     }
                 });
@@ -1043,7 +1033,6 @@
                 attachmentsSection.style.display = 'none';
             }
             
-            // Show modal
             modal.style.display = 'block';
         }
         
@@ -1051,39 +1040,19 @@
         function closeVideoModal() {
             const modal = document.getElementById('videoModal');
             const modalVideo = document.getElementById('modalVideo');
+            const modalIframe = document.getElementById('modalIframe');
             
-            // Pause video
             modalVideo.pause();
-            modalVideo.src = ''; // Reset video source to prevent memory leaks
+            modalVideo.removeAttribute('src');
+            modalVideo.load();
+            modalIframe.src = '';
             
-            // Hide modal
             modal.style.display = 'none';
-        }
-        
-        // Populate classroom filter
-        function populateClassroomFilter() {
-            const classroomFilter = document.getElementById('classroom-filter');
-            
-            // Get unique classrooms from sample data
-            const classrooms = [...new Set(recordedClasses.map(cls => cls.classroom).filter(Boolean))];
-            
-            // Clear existing options except "All Classrooms"
-            classroomFilter.innerHTML = '<option value="">All Classrooms</option>';
-            
-            // Add classroom options
-            classrooms.forEach(classroom => {
-                const option = document.createElement('option');
-                option.value = classroom;
-                option.textContent = classroom;
-                classroomFilter.appendChild(option);
-            });
         }
         
         // Initialize page
         document.addEventListener('DOMContentLoaded', function() {
-            // Populate classroom filter and load classes
-            populateClassroomFilter();
-            loadRecordedClasses();
+            fetchRecordedClasses();
             
             // Event delegation for view buttons
             document.getElementById('classes-container').addEventListener('click', function(e) {
@@ -1091,7 +1060,7 @@
                 if (btn) {
                     e.preventDefault();
                     const classId = btn.getAttribute('data-id');
-                    const classData = recordedClasses.find(cls => cls.id === classId);
+                    const classData = recordedClasses.find(cls => String(cls.id) === String(classId));
                     if (classData) {
                         openVideoModal(classData);
                     }

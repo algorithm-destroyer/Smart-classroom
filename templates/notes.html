@@ -682,7 +682,7 @@
     <!-- Navigation -->
     <nav>
         <div class="nav-container">
-            <a href="student home.html" class="logo">
+            <a href="/home" class="logo">
                 <i class="fas fa-graduation-cap"></i>
                 Student Portal
             </a>
@@ -696,7 +696,7 @@
     <!-- Sidebar Menu -->
     <div class="sidebar" id="sidebar">
         <div class="sidebar-menu">
-            <a href="home" class="sidebar-item">
+            <a href="/home" class="sidebar-item">
                 <span>Home</span>
                 <i class="fas fa-home"></i>
             </a>
@@ -704,7 +704,7 @@
                 <span>Attendance</span>
                 <i class="fas fa-user-check"></i>
             </a>
-            <a href="assignment.html" class="sidebar-item">
+            <a href="assignments.html" class="sidebar-item">
                 <span>Assignment</span>
                 <i class="fas fa-calendar-alt"></i>
             </a>
@@ -746,12 +746,6 @@
                     <label for="subject-select">Subject:</label>
                     <select id="subject-select" onchange="filterNotes()">
                         <option value="all">All Subjects</option>
-                        <option value="Mathematics">Mathematics</option>
-                        <option value="Science">Science</option>
-                        <option value="English">English</option>
-                        <option value="History">History</option>
-                        <option value="Geography">Geography</option>
-                        <option value="Computer Science">Computer Science</option>
                     </select>
                 </div>
                 
@@ -798,108 +792,15 @@
     </div>
     
     <script>
-        // Database simulation using localStorage
-        const db = {
-            // Get all notes
-            getNotes: function() {
-                try {
-                    const notes = localStorage.getItem('teacherNotes');
-                    return notes ? JSON.parse(notes) : this.getSampleNotes();
-                } catch (error) {
-                    console.error("Error getting notes from localStorage:", error);
-                    return this.getSampleNotes();
-                }
-            },
-            
-            // Get sample notes for demonstration
-            getSampleNotes: function() {
-                return [
-                    {
-                        id: 1,
-                        title: "Introduction to Algebra",
-                        subject: "Mathematics",
-                        teacher: "Dr. Smith",
-                        date: "2023-09-15",
-                        content: "Algebra is a branch of mathematics dealing with symbols and the rules for manipulating those symbols. In elementary algebra, those symbols (today written as Latin and Greek letters) represent quantities without fixed values, known as variables.\n\nKey Concepts:\n1. Variables and Constants\n2. Expressions and Equations\n3. Solving Linear Equations\n4. Graphing Linear Functions\n\nVariables: A variable is a symbol (usually a letter) that represents a quantity that can vary. For example, in the equation x + 2 = 5, x is a variable.\n\nConstants: A constant is a value that does not change. In the same equation, 2 and 5 are constants.\n\nExpressions: An algebraic expression is a combination of variables, constants, and operations. For example, 3x + 4 is an expression.\n\nEquations: An equation is a statement that two expressions are equal. For example, 3x + 4 = 10 is an equation.",
-                        description: "Basic concepts of algebra including variables, expressions, and equations.",
-                        isNew: false
-                    },
-                    {
-                        id: 2,
-                        title: "Cell Structure and Function",
-                        subject: "Science",
-                        teacher: "Prof. Johnson",
-                        date: "2023-09-18",
-                        content: "Cells are the basic building blocks of all living things. The human body is composed of trillions of cells. They provide structure for the body, take in nutrients from food, convert those nutrients into energy, and carry out specialized functions.\n\nCell Theory:\n1. All living organisms are composed of one or more cells.\n2. The cell is the basic unit of structure and organization in organisms.\n3. All cells arise from pre-existing cells.\n\nCell Structure:\n- Cell Membrane: The outer covering of the cell that controls what enters and leaves the cell.\n- Cytoplasm: The jelly-like substance within the cell where most cellular activities occur.\n- Nucleus: The control center of the cell that contains DNA.\n- Mitochondria: The powerhouse of the cell that produces energy.\n- Ribosomes: Responsible for protein synthesis.\n- Endoplasmic Reticulum: Involved in protein and lipid synthesis.\n- Golgi Apparatus: Modifies, sorts, and packages proteins and lipids.",
-                        description: "Overview of cell structure and function in living organisms.",
-                        isNew: true
-                    },
-                    {
-                        id: 3,
-                        title: "Shakespeare's Hamlet - Analysis",
-                        subject: "English",
-                        teacher: "Ms. Williams",
-                        date: "2023-09-20",
-                        content: "Hamlet, Prince of Denmark, is a tragedy by William Shakespeare. It is one of his best-known works, and is considered one of the most powerful and influential tragedies in the English language.\n\nPlot Summary:\nThe play opens with the ghost of the King of Denmark telling his son, Prince Hamlet, that he was murdered by his own brother, Claudius, who then took the throne and married Hamlet's mother. The ghost urges Hamlet to avenge his death.\n\nThemes:\n1. Revenge: The central theme of the play is Hamlet's quest for revenge against his uncle Claudius.\n2. Madness: Hamlet's feigned (or real) madness is a major theme throughout the play.\n3. Mortality: The play explores the nature of life and death, with Hamlet contemplating suicide in his famous 'To be or not to be' soliloquy.\n4. Deception: Characters in the play frequently deceive one another, leading to tragic consequences.\n\nKey Characters:\n- Hamlet: The Prince of Denmark, protagonist of the play.\n- Claudius: Hamlet's uncle and the new King of Denmark.\n- Gertrude: Hamlet's mother and Queen of Denmark.\n- Ophelia: Daughter of Polonius and Hamlet's love interest.\n- Polonius: Chief counselor to King Claudius.",
-                        description: "Detailed analysis of Shakespeare's tragedy Hamlet, including themes and characters.",
-                        isNew: false
-                    },
-                    {
-                        id: 4,
-                        title: "World War II - Causes and Consequences",
-                        subject: "History",
-                        teacher: "Dr. Brown",
-                        date: "2023-09-22",
-                        content: "World War II was a global war that lasted from 1939 to 1945. It involved the vast majority of the world's countries—including all the great powers—forming two opposing military alliances: the Allies and the Axis.\n\nCauses of World War II:\n1. Treaty of Versailles: The harsh terms imposed on Germany after World War I created resentment and economic hardship.\n2. Rise of Fascism: The rise of fascist regimes in Italy, Germany, and Japan promoted aggressive expansionism.\n3. Failure of Appeasement: The policy of giving in to Hitler's demands in the hope of avoiding war only encouraged further aggression.\n4. Invasion of Poland: Germany's invasion of Poland in 1939 was the immediate trigger for the war.\n\nMajor Events:\n- 1939: Germany invades Poland, starting WWII.\n- 1940: Fall of France; Battle of Britain.\n- 1941: Germany invades the Soviet Union; Japan attacks Pearl Harbor, bringing the US into the war.\n- 1942-1943: Turning points at Stalingrad and Midway.\n- 1944: D-Day landings in Normandy.\n- 1945: Germany surrenders in May; Japan surrenders in August after atomic bombs are dropped on Hiroshima and Nagasaki.\n\nConsequences:\n- Estimated 70-85 million people died, making it the deadliest conflict in human history.\n- The United Nations was established to prevent future conflicts.\n- The Cold War began between the US and Soviet Union.\n- Decolonization movements accelerated in Asia and Africa.",
-                        description: "Comprehensive overview of World War II, including causes, major events, and consequences.",
-                        isNew: true
-                    },
-                    {
-                        id: 5,
-                        title: "Plate Tectonics and Continental Drift",
-                        subject: "Geography",
-                        teacher: "Prof. Davis",
-                        date: "2023-09-25",
-                        content: "Plate tectonics is a scientific theory describing the large-scale motion of Earth's lithosphere. The theory builds on the concept of continental drift, an idea developed in the early 20th century.\n\nContinental Drift Theory:\nProposed by Alfred Wegener in 1912, the theory suggests that continents were once joined together in a supercontinent called Pangaea, which later broke apart and drifted to their current positions.\n\nEvidence for Continental Drift:\n1. Fossil Evidence: Similar fossils found on different continents that are now separated by oceans.\n2. Rock Formations and Mountain Ranges: Matching rock types and geological structures on different continents.\n3. Climate Evidence: Evidence of past climates that don't match current locations.\n4. Continental Fit: The coastlines of continents like South America and Africa fit together like puzzle pieces.\n\nPlate Tectonics Theory:\nDeveloped in the 1960s, this theory explains how Earth's lithosphere is divided into several plates that move over the asthenosphere.\n\nTypes of Plate Boundaries:\n1. Divergent Boundaries: Plates move apart, creating new crust as magma rises to the surface (e.g., Mid-Atlantic Ridge).\n2. Convergent Boundaries: Plates move toward each other, leading to subduction or collision (e.g., Andes Mountains, Himalayas).\n3. Transform Boundaries: Plates slide past each other (e.g., San Andreas Fault).\n\nConsequences of Plate Tectonics:\n- Earthquakes and volcanic activity\n- Formation of mountains and ocean trenches\n- Creation of new crust and destruction of old crust\n- Continental drift and changing positions of continents over millions of years",
-                        description: "Explanation of plate tectonics theory and evidence for continental drift.",
-                        isNew: false
-                    },
-                    {
-                        id: 6,
-                        title: "Introduction to Python Programming",
-                        subject: "Computer Science",
-                        teacher: "Mr. Miller",
-                        date: "2023-09-28",
-                        content: "Python is a high-level, interpreted programming language known for its simplicity and readability. It was created by Guido van Rossum and first released in 1991.\n\nWhy Learn Python?\n1. Simple and Readable: Python's syntax is clean and easy to understand, making it great for beginners.\n2. Versatile: Python can be used for web development, data analysis, artificial intelligence, scientific computing, and more.\n3. Large Community: Python has a vast and active community, providing plenty of resources and support.\n4. Extensive Libraries: Python has a rich ecosystem of libraries for various tasks.\n\nBasic Python Syntax:\n```python\n# This is a comment\nprint('Hello, World!')  # Output text\n\n# Variables\nname = 'Alice'\nage = 25\nheight = 5.6\nis_student = True\n\n# Data types\nprint(type(name))    # <class 'str'>\nprint(type(age))     # <class 'int'>\nprint(type(height))  # <class 'float'>\nprint(type(is_student))  # <class 'bool'>\n\n# Lists\nfruits = ['apple', 'banana', 'cherry']\nprint(fruits[0])  # 'apple'\n\n# Dictionaries\nperson = {\n    'name': 'Bob',\n    'age': 30,\n    'city': 'New York'\n}\nprint(person['name'])  # 'Bob'\n\n# Conditional statements\nif age >= 18:\n    print('You are an adult')\nelse:\n    print('You are a minor')\n\n# Loops\nfor fruit in fruits:\n    print(fruit)\n\ni = 0\nwhile i < 5:\n    print(i)\n    i += 1\n\n# Functions\ndef greet(name):\n    return f'Hello, {name}!'\n\nprint(greet('Charlie'))  # 'Hello, Charlie!'\n```\n\nGetting Started with Python:\n1. Install Python from python.org\n2. Choose an IDE or text editor (PyCharm, VS Code, Jupyter Notebook)\n3. Write your first program: print('Hello, World!')\n4. Practice with basic concepts and gradually move to more complex topics",
-                        description: "Introduction to Python programming language with basic syntax and examples.",
-                        isNew: true
-                    }
-                ];
-            },
-            
-            // Mark a note as read
-            markNoteAsRead: function(noteId) {
-                try {
-                    const notes = this.getNotes();
-                    const noteIndex = notes.findIndex(note => note.id === noteId);
-                    
-                    if (noteIndex !== -1) {
-                        notes[noteIndex].isNew = false;
-                        localStorage.setItem('teacherNotes', JSON.stringify(notes));
-                        return true;
-                    }
-                    
-                    return false;
-                } catch (error) {
-                    console.error("Error marking note as read:", error);
-                    return false;
-                }
-            }
-        };
-        
-        // Current note being viewed
+        let allNotes = [];
         let currentNote = null;
-        
+
+        function escapeHtml(value) {
+            return String(value ?? '').replace(/[&<>"']/g, function(ch) {
+                return {'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'}[ch];
+            });
+        }
+
         // Sidebar functions
         function openNav() { 
             document.getElementById("sidebar").classList.toggle('active');
@@ -910,135 +811,134 @@
             document.getElementById("sidebar").classList.remove('active');
             document.getElementById("hamburger").classList.remove('active');
         } 
-        
-        // Load and display notes
-        function loadNotes() {
-            const notes = db.getNotes();
+
+        function populateSubjects(notes) {
+            const select = document.getElementById('subject-select');
+            const previous = select.value || 'all';
+            const subjects = Array.from(new Set(notes.map(n => n.subject).filter(Boolean))).sort();
+            select.innerHTML = '<option value="all">All Subjects</option>';
+            subjects.forEach(subj => {
+                const opt = document.createElement('option');
+                opt.value = subj;
+                opt.textContent = subj;
+                select.appendChild(opt);
+            });
+            if (subjects.includes(previous) || previous === 'all') {
+                select.value = previous;
+            }
+        }
+
+        function renderNotes(notes) {
             const notesGrid = document.getElementById('notes-grid');
             const noData = document.getElementById('no-data');
-            
             notesGrid.innerHTML = '';
-            
-            if (notes.length === 0) {
+
+            if (!notes || notes.length === 0) {
                 notesGrid.style.display = 'none';
                 noData.style.display = 'block';
                 return;
             }
-            
+
             notesGrid.style.display = 'grid';
             noData.style.display = 'none';
-            
+
             notes.forEach(note => {
                 const noteCard = document.createElement('div');
                 noteCard.className = 'note-card';
-                noteCard.onclick = () => openNoteModal(note);
-                
+                noteCard.dataset.noteId = note.id;
+
                 noteCard.innerHTML = `
                     <div class="note-header">
-                        <div class="note-title">${note.title}</div>
-                        <div class="note-subject">${note.subject}</div>
+                        <div class="note-title">${escapeHtml(note.title)}</div>
+                        <div class="note-subject">${escapeHtml(note.subject)}</div>
                         <div class="note-meta">
-                            <div class="note-teacher">${note.teacher}</div>
-                            <div class="note-date">${note.date}</div>
+                            <div class="note-teacher">${escapeHtml(note.teacher)}</div>
+                            <div class="note-date">${escapeHtml(note.date)}</div>
                         </div>
                     </div>
                     <div class="note-content">
-                        <div class="note-description">${note.description}</div>
+                        <div class="note-description">${escapeHtml(note.description)}</div>
                     </div>
                     <div class="note-footer">
                         <div class="note-actions">
-                            <button class="note-btn view-btn" onclick="event.stopPropagation(); openNoteModal(${JSON.stringify(note).replace(/"/g, '&quot;')})">View</button>
-                            <button class="note-btn download-btn" onclick="event.stopPropagation(); downloadNote(${JSON.stringify(note).replace(/"/g, '&quot;')})">Download</button>
+                            <button type="button" class="note-btn view-btn" data-action="view">View</button>
+                            <button type="button" class="note-btn download-btn" data-action="download">Download</button>
                         </div>
                         <div class="note-status ${note.isNew ? 'status-new' : 'status-read'}">
                             ${note.isNew ? 'New' : 'Read'}
                         </div>
                     </div>
                 `;
-                
+
+                noteCard.addEventListener('click', () => openNoteModal(note));
+                noteCard.querySelector('[data-action="view"]').addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    openNoteModal(note);
+                });
+                noteCard.querySelector('[data-action="download"]').addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    downloadNote(note);
+                });
+
                 notesGrid.appendChild(noteCard);
             });
+        }
+
+        async function loadNotes() {
+            try {
+                const res = await fetch('/api/notes');
+                const data = await res.json();
+                if (!res.ok || data.status !== 'success') {
+                    throw new Error(data.message || 'Failed to load notes');
+                }
+                allNotes = data.notes || [];
+                populateSubjects(allNotes);
+                filterNotes();
+            } catch (error) {
+                console.error('Error loading notes:', error);
+                allNotes = [];
+                renderNotes([]);
+            }
         }
         
         // Filter notes based on subject and search input
         function filterNotes() {
             const subjectFilter = document.getElementById('subject-select').value;
             const searchInput = document.getElementById('search-input').value.toLowerCase();
-            const notes = db.getNotes();
-            const notesGrid = document.getElementById('notes-grid');
-            const noData = document.getElementById('no-data');
             
-            notesGrid.innerHTML = '';
-            
-            // Filter notes
-            const filteredNotes = notes.filter(note => {
+            const filteredNotes = allNotes.filter(note => {
                 const matchesSubject = subjectFilter === 'all' || note.subject === subjectFilter;
-                const matchesSearch = note.title.toLowerCase().includes(searchInput) || 
-                                      note.description.toLowerCase().includes(searchInput) ||
-                                      note.content.toLowerCase().includes(searchInput);
+                const title = (note.title || '').toLowerCase();
+                const desc = (note.description || '').toLowerCase();
+                const content = (note.content || '').toLowerCase();
+                const matchesSearch = title.includes(searchInput) || desc.includes(searchInput) || content.includes(searchInput);
                 return matchesSubject && matchesSearch;
             });
             
-            if (filteredNotes.length === 0) {
-                notesGrid.style.display = 'none';
-                noData.style.display = 'block';
-                return;
-            }
-            
-            notesGrid.style.display = 'grid';
-            noData.style.display = 'none';
-            
-            filteredNotes.forEach(note => {
-                const noteCard = document.createElement('div');
-                noteCard.className = 'note-card';
-                noteCard.onclick = () => openNoteModal(note);
-                
-                noteCard.innerHTML = `
-                    <div class="note-header">
-                        <div class="note-title">${note.title}</div>
-                        <div class="note-subject">${note.subject}</div>
-                        <div class="note-meta">
-                            <div class="note-teacher">${note.teacher}</div>
-                            <div class="note-date">${note.date}</div>
-                        </div>
-                    </div>
-                    <div class="note-content">
-                        <div class="note-description">${note.description}</div>
-                    </div>
-                    <div class="note-footer">
-                        <div class="note-actions">
-                            <button class="note-btn view-btn" onclick="event.stopPropagation(); openNoteModal(${JSON.stringify(note).replace(/"/g, '&quot;')})">View</button>
-                            <button class="note-btn download-btn" onclick="event.stopPropagation(); downloadNote(${JSON.stringify(note).replace(/"/g, '&quot;')})">Download</button>
-                        </div>
-                        <div class="note-status ${note.isNew ? 'status-new' : 'status-read'}">
-                            ${note.isNew ? 'New' : 'Read'}
-                        </div>
-                    </div>
-                `;
-                
-                notesGrid.appendChild(noteCard);
-            });
+            renderNotes(filteredNotes);
         }
         
         // Open note detail modal
-        function openNoteModal(note) {
+        async function openNoteModal(note) {
             currentNote = note;
+
+            document.getElementById('modal-title').textContent = note.title || '';
+            document.getElementById('modal-subject').textContent = note.subject || '';
+            document.getElementById('modal-teacher').textContent = note.teacher || '';
+            document.getElementById('modal-date').textContent = note.date || '';
+            document.getElementById('modal-text').textContent = note.content || '';
             
-            // Mark note as read
-            db.markNoteAsRead(note.id);
-            
-            // Update modal content
-            document.getElementById('modal-title').textContent = note.title;
-            document.getElementById('modal-subject').textContent = note.subject;
-            document.getElementById('modal-teacher').textContent = note.teacher;
-            document.getElementById('modal-date').textContent = note.date;
-            document.getElementById('modal-text').textContent = note.content;
-            
-            // Show modal
             document.getElementById('note-modal').style.display = 'block';
-            
-            // Refresh notes to update status
-            loadNotes();
+
+            if (note.isNew) {
+                note.isNew = false;
+                filterNotes();
+                try {
+                    await fetch(`/api/notes/${encodeURIComponent(note.id)}/read`, { method: 'POST' });
+                } catch (err) {
+                    console.warn('Unable to mark note as read:', err);
+                }
+            }
         }
         
         // Close modal
@@ -1057,7 +957,7 @@
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = `${note.title.replace(/\s+/g, '_')}.txt`;
+            a.download = `${(note.title || 'note').replace(/\s+/g, '_')}.txt`;
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);

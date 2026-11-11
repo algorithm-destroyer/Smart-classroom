@@ -698,6 +698,12 @@
         const tabs = document.querySelectorAll('.tab');
         const tabContents = document.querySelectorAll('.tab-content');
 
+        function escapeHtml(value) {
+            return String(value ?? '').replace(/[&<>"']/g, function(ch) {
+                return {'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'}[ch];
+            });
+        }
+
         tabs.forEach(tab => {
             tab.addEventListener('click', () => {
                 const tabId = tab.getAttribute('data-tab');
@@ -708,65 +714,10 @@
             });
         });
 
-        function loadPreviousQueries() {
-            const queries = JSON.parse(localStorage.getItem('teacherQueries')) || [];
-            previousQueries.innerHTML = '';
-            if (queries.length === 0) {
-                previousQueries.innerHTML = '<p class="empty-state">No previous queries found.</p>';
-                return;
-            }
-            queries.slice().reverse().forEach(query => {
-                const queryItem = document.createElement('div');
-                queryItem.className = 'query-item';
-                const statusClass = `status-${query.status.replace(/\s+/g, '-').toLowerCase()}`;
-                queryItem.innerHTML = `
-                    <h4>${query.subject}</h4>
-                    <div class="query-meta">
-                        <div>To: ${getRecipientName(query.recipient)}</div>
-                        <div>${new Date(query.timestamp).toLocaleString()}</div>
-                    </div>
-                    <div class="query-content">${query.message}</div>
-                    <div class="query-status ${statusClass}">${query.status}</div>
-                `;
-                previousQueries.appendChild(queryItem);
-            });
-        }
-
-        function loadQueryReplies() {
-            const queries = JSON.parse(localStorage.getItem('teacherQueries')) || [];
-            let hasReplies = false;
-            queryReplies.innerHTML = '';
-            queries.slice().reverse().forEach(query => {
-                if (query.replies && query.replies.length > 0) {
-                    hasReplies = true;
-                    const queryItem = document.createElement('div');
-                    queryItem.className = 'query-item';
-                    queryItem.innerHTML = `
-                        <h4>${query.subject}</h4>
-                        <div class="query-meta">
-                            <div>To: ${getRecipientName(query.recipient)}</div>
-                            <div>${new Date(query.timestamp).toLocaleString()}</div>
-                        </div>
-                        <div class="query-content">${query.message}</div>
-                    `;
-                    query.replies.forEach(reply => {
-                        const replyItem = document.createElement('div');
-                        replyItem.className = 'reply-item';
-                        replyItem.innerHTML = `
-                            <div class="reply-header">
-                                <div class="reply-author">${reply.responder}</div>
-                                <div class="reply-time">${new Date(reply.timestamp).toLocaleString()}</div>
-                            </div>
-                            <div class="reply-content">${reply.message}</div>
-                        `;
-                        queryItem.appendChild(replyItem);
-                    });
-                    queryReplies.appendChild(queryItem);
-                }
-            });
-            if (!hasReplies) {
-                queryReplies.innerHTML = '<p class="empty-state">No replies to your queries yet.</p>';
-            }
+        function formatTimestamp(ts) {
+            if (!ts) return 'Recent';
+            const d = new Date(ts);
+            return isNaN(d.getTime()) ? String(ts) : d.toLocaleString();
         }
 
         function getRecipientName(recipient) {
@@ -780,33 +731,113 @@
             return recipients[recipient] || recipient;
         }
 
-        queryForm.addEventListener('submit', (e) => {
+        function renderPreviousQueries(queries) {
+            previousQueries.innerHTML = '';
+            if (!queries || queries.length === 0) {
+                previousQueries.innerHTML = '<p class="empty-state">No previous queries found.</p>';
+                return;
+            }
+            queries.forEach(query => {
+                const queryItem = document.createElement('div');
+                queryItem.className = 'query-item';
+                const statusText = query.status || 'Pending';
+                const statusClass = `status-${statusText.replace(/\s+/g, '-').toLowerCase()}`;
+                queryItem.innerHTML = `
+                    <h4>${escapeHtml(query.subject)}</h4>
+                    <div class="query-meta">
+                        <div>To: ${escapeHtml(getRecipientName(query.recipient))}</div>
+                        <div>${escapeHtml(formatTimestamp(query.timestamp))}</div>
+                    </div>
+                    <div class="query-content">${escapeHtml(query.message)}</div>
+                    <div class="query-status ${escapeHtml(statusClass)}">${escapeHtml(statusText)}</div>
+                `;
+                previousQueries.appendChild(queryItem);
+            });
+        }
+
+        function renderQueryReplies(queries) {
+            let hasReplies = false;
+            queryReplies.innerHTML = '';
+            (queries || []).forEach(query => {
+                if (query.replies && query.replies.length > 0) {
+                    hasReplies = true;
+                    const queryItem = document.createElement('div');
+                    queryItem.className = 'query-item';
+                    queryItem.innerHTML = `
+                        <h4>${escapeHtml(query.subject)}</h4>
+                        <div class="query-meta">
+                            <div>To: ${escapeHtml(getRecipientName(query.recipient))}</div>
+                            <div>${escapeHtml(formatTimestamp(query.timestamp))}</div>
+                        </div>
+                        <div class="query-content">${escapeHtml(query.message)}</div>
+                    `;
+                    query.replies.forEach(reply => {
+                        const replyItem = document.createElement('div');
+                        replyItem.className = 'reply-item';
+                        replyItem.innerHTML = `
+                            <div class="reply-header">
+                                <div class="reply-author">${escapeHtml(reply.responder)}</div>
+                                <div class="reply-time">${escapeHtml(formatTimestamp(reply.timestamp))}</div>
+                            </div>
+                            <div class="reply-content">${escapeHtml(reply.message)}</div>
+                        `;
+                        queryItem.appendChild(replyItem);
+                    });
+                    queryReplies.appendChild(queryItem);
+                }
+            });
+            if (!hasReplies) {
+                queryReplies.innerHTML = '<p class="empty-state">No replies to your queries yet.</p>';
+            }
+        }
+
+        async function loadQueries() {
+            try {
+                const res = await fetch('/api/queries');
+                const data = await res.json();
+                if (!res.ok || data.status !== 'success') {
+                    throw new Error(data.message || 'Failed to load queries');
+                }
+                const queries = data.queries || [];
+                renderPreviousQueries(queries);
+                renderQueryReplies(queries);
+            } catch (err) {
+                console.error('Error loading queries:', err);
+                previousQueries.innerHTML = '<p class="empty-state">Unable to load previous queries.</p>';
+                queryReplies.innerHTML = '<p class="empty-state">No replies to your queries yet.</p>';
+            }
+        }
+
+        queryForm.addEventListener('submit', async (e) => {
             e.preventDefault();
-            const subject = document.getElementById('querySubject').value;
+            const subject = document.getElementById('querySubject').value.trim();
             const recipient = document.getElementById('queryRecipient').value;
-            const message = document.getElementById('queryMessage').value;
-            const query = {
-                id: Date.now().toString(),
-                subject,
-                recipient,
-                message,
-                status: 'Pending',
-                replies: [],
-                timestamp: new Date().toISOString()
-            };
-            const queries = JSON.parse(localStorage.getItem('teacherQueries')) || [];
-            queries.push(query);
-            localStorage.setItem('teacherQueries', JSON.stringify(queries));
-            successMessage.style.display = 'block';
-            setTimeout(() => { successMessage.style.display = 'none'; }, 3000);
-            queryForm.reset();
-            loadPreviousQueries();
-            loadQueryReplies();
+            const message = document.getElementById('queryMessage').value.trim();
+            if (!subject || !recipient || !message) {
+                alert('Please fill out Subject, Recipient, and Message.');
+                return;
+            }
+            try {
+                const res = await fetch('/api/queries', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ subject, recipient, message })
+                });
+                const data = await res.json();
+                if (!res.ok || data.status !== 'success') {
+                    throw new Error(data.message || 'Failed to send query');
+                }
+                successMessage.style.display = 'block';
+                setTimeout(() => { successMessage.style.display = 'none'; }, 3000);
+                queryForm.reset();
+                await loadQueries();
+            } catch (err) {
+                alert('Error sending query: ' + err.message);
+            }
         });
 
         window.addEventListener('load', () => {
-            loadPreviousQueries();
-            loadQueryReplies();
+            loadQueries();
         });
     </script>
 </body>

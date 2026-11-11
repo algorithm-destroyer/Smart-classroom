@@ -633,10 +633,19 @@
     }
 
     async function performLogin() {
+      const regNo = document.getElementById("reg-number").value.trim();
+      const rememberCheckbox = document.getElementById("remember");
+      const remember = Boolean(rememberCheckbox && rememberCheckbox.checked);
       const formData = {
-        regNo: document.getElementById("reg-number").value,
-        password: document.getElementById("password").value
+        regNo: regNo,
+        password: document.getElementById("password").value,
+        remember: remember
       };
+      if (remember) {
+        localStorage.setItem('rememberStudentRegNo', regNo);
+      } else {
+        localStorage.removeItem('rememberStudentRegNo');
+      }
       const serverMessage = document.getElementById("server-message");
 
       try {
@@ -673,6 +682,12 @@
     
     // Initial captcha generation on load
     document.addEventListener("DOMContentLoaded", function() {
+      const savedRegNo = localStorage.getItem('rememberStudentRegNo');
+      if (savedRegNo) {
+        document.getElementById("reg-number").value = savedRegNo;
+        const rememberCheckbox = document.getElementById("remember");
+        if (rememberCheckbox) rememberCheckbox.checked = true;
+      }
       generateCaptcha();
       // Ensure register-link is visible after page load
       const registerLink = document.querySelector('.register-link');

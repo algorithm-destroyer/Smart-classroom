@@ -396,14 +396,14 @@
         document.getElementById('registrationForm').addEventListener('submit', async function(event) {
             event.preventDefault();
             const formData = {
-                name: document.getElementById('name').value,
+                name: document.getElementById('name').value.trim(),
                 gender: document.querySelector('input[name="gender"]:checked')?.value || '',
                 dob: document.getElementById('dob').value,
-                branch: document.getElementById('branch').value,
+                branch: document.getElementById('branch').value.trim(),
                 year: document.getElementById('year').value,
-                email: document.getElementById('email').value,
-                regNo: document.getElementById('regNo').value,
-                phone: document.getElementById('phone').value,
+                email: document.getElementById('email').value.trim(),
+                regNo: document.getElementById('regNo').value.trim(),
+                phone: document.getElementById('phone').value.trim(),
                 password: document.getElementById('password').value
             };
             const confirmPassword = document.getElementById('confirm-password').value;
@@ -419,7 +419,7 @@
             let isValid = true;
 
             // Validate name
-            if (!/^[a-zA-Z\s]+$/.test(formData.name)) {
+            if (!/^[a-zA-Z][a-zA-Z.\-'\s]*$/.test(formData.name)) {
                 document.getElementById('name-error').style.display = 'block';
                 isValid = false;
             }
@@ -431,7 +431,7 @@
             }
 
             // Validate branch
-            if (!/^[a-zA-Z\s]+$/.test(formData.branch)) {
+            if (!/^[a-zA-Z][a-zA-Z.\-'\s]*$/.test(formData.branch)) {
                 document.getElementById('branch-error').style.display = 'block';
                 isValid = false;
             }

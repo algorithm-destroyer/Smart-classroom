@@ -475,7 +475,7 @@
     <!-- Navigation -->
     <nav>
         <div class="nav-container">
-            <a href="home.html" class="logo">
+            <a href="/home" class="logo">
                 <i class="fas fa-graduation-cap"></i>
                 Smart Classroom
             </a>
@@ -489,11 +489,11 @@
     <!-- Sidebar Menu -->
     <div class="sidebar" id="sidebar" role="navigation">
         <div class="sidebar-menu">
-            <a href="home" class="sidebar-item">
+            <a href="/home" class="sidebar-item">
                 <span>Home</span>
                 <i class="fas fa-home"></i>
             </a>
-            <a href="assignment.html" class="sidebar-item">
+            <a href="assignments.html" class="sidebar-item">
                 <span>Assignment</span>
                 <i class="fas fa-calendar-alt"></i>
             </a>
@@ -514,7 +514,7 @@
                 <i class="fas fa-bell"></i>
             </a>
             <a href="profile.html" class="sidebar-item">
-                <span>Profile</span>
+                <span>Your Profile</span>
                 <i class="fas fa-user"></i>
             </a>
             <a href="academic_profile.html" class="sidebar-item">
@@ -530,36 +530,15 @@
     <!-- Main Content -->
     <main>
         <div class="container">
-            <a href="home" class="back-link">&larr; Back to Home</a>
+            <a href="/home" class="back-link">&larr; Back to Home</a>
             <h1>Notices</h1>
             <p>View the latest announcements from your teachers</p>
             <hr>
-            <ul class="notice-list">
+            <ul class="notice-list" id="noticeList">
                 <li class="notice-item">
                     <div class="notice-info">
-                        <div class="notice-title">Class Test on Mathematics</div>
-                        <div class="notice-date">September 28, 2025</div>
-                    </div>
-                    <div class="notice-actions">
-                        <button type="button" class="view-btn" onclick="viewNotice('Class Test on Mathematics', 'September 28, 2025', 'A class test on Mathematics will be conducted tomorrow at 10:00 AM. Please prepare Chapters 1-3.')">View</button>
-                    </div>
-                </li>
-                <li class="notice-item">
-                    <div class="notice-info">
-                        <div class="notice-title">Project Submission Deadline</div>
-                        <div class="notice-date">October 5, 2025</div>
-                    </div>
-                    <div class="notice-actions">
-                        <button type="button" class="view-btn" onclick="viewNotice('Project Submission Deadline', 'October 5, 2025', 'The deadline for submitting the group project is extended to October 5, 2025. Submit via the portal.')">View</button>
-                    </div>
-                </li>
-                <li class="notice-item">
-                    <div class="notice-info">
-                        <div class="notice-title">Parent-Teacher Meeting</div>
-                        <div class="notice-date">October 10, 2025</div>
-                    </div>
-                    <div class="notice-actions">
-                        <button type="button" class="view-btn" onclick="viewNotice('Parent-Teacher Meeting', 'October 10, 2025', 'A parent-teacher meeting is scheduled for October 10, 2025, from 2:00 PM to 4:00 PM.')">View</button>
+                        <div class="notice-title">Loading notices...</div>
+                        <div class="notice-date">Please wait</div>
                     </div>
                 </li>
             </ul>
@@ -617,8 +596,65 @@
             openModal();
         }
 
-        // Load user data when page loads
+        async function loadNotices() {
+            const list = document.getElementById('noticeList');
+            try {
+                const res = await fetch('/api/notices');
+                const data = await res.json();
+                if (!res.ok || data.status !== 'success') {
+                    throw new Error(data.message || 'Failed to load notices');
+                }
+                const notices = data.notices || [];
+                list.innerHTML = '';
+                if (notices.length === 0) {
+                    const emptyItem = document.createElement('li');
+                    emptyItem.className = 'notice-item';
+                    emptyItem.innerHTML = '<div class="notice-info"><div class="notice-title">No notices available</div><div class="notice-date">Check back later</div></div>';
+                    list.appendChild(emptyItem);
+                    return;
+                }
+                notices.forEach(notice => {
+                    const item = document.createElement('li');
+                    item.className = 'notice-item';
+
+                    const info = document.createElement('div');
+                    info.className = 'notice-info';
+
+                    const titleEl = document.createElement('div');
+                    titleEl.className = 'notice-title';
+                    titleEl.textContent = notice.title || 'Untitled Notice';
+
+                    const dateEl = document.createElement('div');
+                    dateEl.className = 'notice-date';
+                    dateEl.textContent = notice.date || '';
+
+                    info.appendChild(titleEl);
+                    info.appendChild(dateEl);
+
+                    const actions = document.createElement('div');
+                    actions.className = 'notice-actions';
+
+                    const btn = document.createElement('button');
+                    btn.type = 'button';
+                    btn.className = 'view-btn';
+                    btn.textContent = 'View';
+                    btn.addEventListener('click', () => viewNotice(notice.title || '', notice.date || '', notice.content || ''));
+                    actions.appendChild(btn);
+
+                    item.appendChild(info);
+                    item.appendChild(actions);
+                    list.appendChild(item);
+                });
+            } catch (error) {
+                console.error('Error loading notices:', error);
+                list.innerHTML = '<li class="notice-item"><div class="notice-info"><div class="notice-title">Unable to load notices</div><div class="notice-date">Please refresh the page</div></div></li>';
+            }
+        }
+
+        // Load data when page loads
         document.addEventListener('DOMContentLoaded', function() {
+            loadNotices();
+
             // Loader animation
             setTimeout(function() {
                 const loader = document.getElementById('loader');
@@ -629,12 +665,17 @@
 
             // Hamburger Menu Toggle
             const hamburger = document.getElementById('hamburger');
-            const sidebar = document.getElementById('sidebar');
             hamburger.addEventListener('click', openNav);
 
             // Modal Close Button
             const closeButton = document.getElementById('modalClose');
             closeButton.addEventListener('click', closeModal);
+            window.addEventListener('click', function(event) {
+                const modal = document.getElementById('noticeModal');
+                if (event.target === modal) {
+                    closeModal();
+                }
+            });
 
             // Progress Bar
             window.addEventListener('scroll', function() {

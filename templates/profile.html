@@ -471,7 +471,7 @@
     <!-- Navigation -->
     <nav>
         <div class="nav-container">
-            <a href="/home.html" class="logo">
+            <a href="/home" class="logo">
                 <i class="fas fa-graduation-cap"></i>
                 Smart Classroom
             </a>
@@ -485,7 +485,7 @@
     <!-- Sidebar Menu -->
     <div class="sidebar" id="sidebar">
         <div class="sidebar-menu">
-            <a href="home" class="sidebar-item">
+            <a href="/home" class="sidebar-item">
                 <span>Home</span>
                 <i class="fas fa-home"></i>
             </a>
@@ -493,7 +493,7 @@
                 <span>Attendance</span>
                 <i class="fas fa-user-check"></i>
             </a>
-            <a href="assignment.html" class="sidebar-item">
+            <a href="assignments.html" class="sidebar-item">
                 <span>Assignment</span>
                 <i class="fas fa-calendar-alt"></i>
             </a>
@@ -533,9 +533,11 @@
             <div class="profile-container">
                 <div class="profile-photo">
                     <div class="photo-placeholder">
-                        <img src="{{ user_data.profile_photo }}" alt="ID Photo">
+                        <img id="profilePhotoImg" src="{{ user_data.profile_photo }}" alt="ID Photo">
                     </div>
-                    <button class="upload-btn">Change Photo</button>
+                    <input type="file" id="photoInput" accept="image/*" style="display: none;">
+                    <button type="button" class="upload-btn" id="changePhotoBtn">Change Photo</button>
+                    <div id="photoUploadStatus" style="margin-top: 8px; font-size: 0.85rem; color: var(--secondary-blue);"></div>
                 </div>
                 
                 <div class="profile-details">
@@ -633,6 +635,46 @@
         
         // Load animation
         document.addEventListener('DOMContentLoaded', function() {
+            const changePhotoBtn = document.getElementById('changePhotoBtn');
+            const photoInput = document.getElementById('photoInput');
+            const profilePhotoImg = document.getElementById('profilePhotoImg');
+            const photoUploadStatus = document.getElementById('photoUploadStatus');
+
+            if (changePhotoBtn && photoInput) {
+                changePhotoBtn.addEventListener('click', () => photoInput.click());
+                photoInput.addEventListener('change', async function() {
+                    if (!this.files || this.files.length === 0) return;
+                    const formData = new FormData();
+                    formData.append('photo', this.files[0]);
+                    if (photoUploadStatus) {
+                        photoUploadStatus.textContent = 'Uploading photo...';
+                        photoUploadStatus.style.color = 'var(--secondary-blue)';
+                    }
+                    try {
+                        const res = await fetch('/api/student/profile/photo', {
+                            method: 'POST',
+                            body: formData
+                        });
+                        const data = await res.json();
+                        if (!res.ok || data.status !== 'success') {
+                            throw new Error(data.message || 'Upload failed');
+                        }
+                        if (profilePhotoImg && data.profile_photo) {
+                            profilePhotoImg.src = data.profile_photo;
+                        }
+                        if (photoUploadStatus) {
+                            photoUploadStatus.textContent = 'Photo updated!';
+                            photoUploadStatus.style.color = 'var(--accent-green)';
+                        }
+                    } catch (err) {
+                        if (photoUploadStatus) {
+                            photoUploadStatus.textContent = err.message || 'Photo upload failed';
+                            photoUploadStatus.style.color = '#e74c3c';
+                        }
+                    }
+                });
+            }
+
             setTimeout(function() {
                 document.getElementById('loader').style.opacity = '0';
                 document.getElementById('loader').style.visibility = 'hidden';

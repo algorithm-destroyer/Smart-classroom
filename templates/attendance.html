@@ -1177,18 +1177,47 @@
             }
         }
 
-        // Check attendance session status
-        function checkAttendanceSessionStatus() {
+        let lastSessionActive = null;
+
+        function escapeHtml(value) {
+            return String(value ?? '').replace(/[&<>"']/g, function(ch) {
+                return {'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'}[ch];
+            });
+        }
+
+        // Check attendance session status from backend
+        async function checkAttendanceSessionStatus() {
             const sessionBanner = document.getElementById('session-status-banner');
             const disabledMessage = document.getElementById('attendance-disabled-message');
             const enabledContent = document.getElementById('attendance-enabled-content');
-            
-            // Force session to be active for testing
-            sessionBanner.textContent = 'Attendance session is active. You can mark your attendance now.';
-            sessionBanner.className = 'session-status-banner session-active visible';
-            disabledMessage.style.display = 'none';
-            enabledContent.style.display = 'block';
-            enabledContent.classList.remove('disabled-section');
+            try {
+                const res = await fetch('/api/attendance/session');
+                const data = await res.json();
+                const sessionInfo = (data && data.session) || {};
+                const isActive = Boolean(sessionInfo.active);
+                const hourText = sessionInfo.hour ? ` (Hour ${sessionInfo.hour})` : '';
+
+                if (isActive) {
+                    sessionBanner.textContent = `Attendance session is active${hourText}. You can mark your attendance now.`;
+                    sessionBanner.className = 'session-status-banner session-active visible';
+                    disabledMessage.style.display = 'none';
+                    enabledContent.style.display = 'block';
+                    enabledContent.classList.remove('disabled-section');
+                    if (lastSessionActive !== true) {
+                        loadAttendanceTable();
+                        loadRegisteredStudents();
+                    }
+                } else {
+                    sessionBanner.textContent = 'Attendance session is currently inactive. Please wait for your teacher to start a session.';
+                    sessionBanner.className = 'session-status-banner session-inactive visible';
+                    disabledMessage.style.display = 'block';
+                    enabledContent.style.display = 'none';
+                    enabledContent.classList.add('disabled-section');
+                }
+                lastSessionActive = isActive;
+            } catch (error) {
+                console.error("Error checking attendance session status:", error);
+            }
         }
 
         // Load attendance table dynamically
@@ -1203,9 +1232,9 @@
                     const tr = document.createElement('tr');
                     tr.setAttribute('data-student-id', s.regNo);
                     tr.innerHTML = `
-                        <td>${s.regNo}</td>
-                        <td>${s.name}</td>
-                        <td>Computer Science</td>
+                        <td>${escapeHtml(s.regNo)}</td>
+                        <td>${escapeHtml(s.name)}</td>
+                        <td>${escapeHtml(s.branch || 'General')}</td>
                         <td class="status-cell status-absent">Absent</td>
                     `;
                     tbody.appendChild(tr);
@@ -1215,7 +1244,7 @@
                 const attData = await attRes.json();
                 if (attData.status === 'success') {
                     Object.keys(attData.attendance).forEach(regNo => {
-                        const row = document.querySelector(`tr[data-student-id="${regNo}"]`);
+                        const row = document.querySelector(`#attendance-table tr[data-student-id="${CSS.escape(regNo)}"]`);
                         if (row && attData.attendance[regNo].status === 'Present') {
                             const statusCell = row.querySelector('.status-cell');
                             statusCell.textContent = 'Present';
@@ -1243,13 +1272,26 @@
                     const tr = document.createElement('tr');
                     tr.setAttribute('data-student-id', s.regNo);
                     tr.innerHTML = `
-                        <td>${s.regNo}</td>
-                        <td>${s.name}</td>
-                        <td>Computer Science</td>
+                        <td>${escapeHtml(s.regNo)}</td>
+                        <td>${escapeHtml(s.name)}</td>
+                        <td>${escapeHtml(s.branch || 'General')}</td>
                         <td class="status-cell status-absent">Absent</td>
                     `;
                     tbody.appendChild(tr);
                 });
+                const attRes = await fetch('/api/get_today_attendance');
+                const attData = await attRes.json();
+                if (attData.status === 'success') {
+                    Object.keys(attData.attendance).forEach(regNo => {
+                        const row = document.querySelector(`#rfid-table tr[data-student-id="${CSS.escape(regNo)}"]`);
+                        if (row && attData.attendance[regNo].status === 'Present') {
+                            const statusCell = row.querySelector('.status-cell');
+                            statusCell.textContent = 'Present';
+                            statusCell.classList.remove('status-absent');
+                            statusCell.classList.add('status-present');
+                        }
+                    });
+                }
                 updateRFIDStats();
             } catch (error) {
                 console.error("Error loading RFID table:", error);

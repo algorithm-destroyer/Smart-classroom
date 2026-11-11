@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Classroom - Recorded Classes</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+        :root {
+            --primary-blue: #0A1B4F;
+            --secondary-blue: #1C3373;
+            --accent-green: #2ecc71;
+            --text-dark: #333;
+            --text-light: #f4f7fa;
+            --bg-light: #f8faff;
+            --white: #ffffff;
+            --grey-text: #6e7a8e;
+            --shadow-light: rgba(0, 0, 0, 0.08);
+            --shadow-medium: rgba(0, 0, 0, 0.15);
+            --transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+        body {
+            background: linear-gradient(135deg, #e0f2f7, #c7e8f0);
+            min-height: 100vh; color: var(--text-dark); position: relative; overflow-x: hidden;
+        }
+        body::before, body::after { content: ''; position: absolute; background-repeat: no-repeat; opacity: 0.1; z-index: -1; }
+        body::before {
+            width: 300px; height: 300px; top: -50px; left: -50px;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'%3E%3Cdefs%3E%3ClinearGradient id='a' x1='0%' y1='0%' x2='100%' y2='100%'%3E%3Cstop offset='0%' stop-color='%231C3373'/%3E%3Cstop offset='100%' stop-color='%230A1B4F'/%3E%3C/linearGradient%3E%3C/defs%3E%3Ccircle cx='100' cy='100' r='90' fill='url(%23a)'/%3E%3C/svg%3E");
+            transform: rotate(30deg); animation: moveShape1 10s infinite alternate;
+        }
+        body::after {
+            width: 250px; height: 250px; bottom: -70px; right: -70px;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'%3E%3Cdefs%3E%3ClinearGradient id='a' x1='0%' y1='0%' x2='100%' y2='100%'%3E%3Cstop offset='0%' stop-color='%232ecc71'/%3E%3Cstop offset='100%' stop-color='%231C3373'/%3E%3C/linearGradient%3E%3C/defs%3E%3Cpolygon points='100,0 200,75 160,200 40,200 0,75' fill='url(%23a)'/%3E%3C/svg%3E");
+            transform: rotate(-45deg); animation: moveShape2 12s infinite alternate-reverse;
+        }
+        @keyframes moveShape1 { from { transform: translate(-50px,-50px) rotate(30deg); } to { transform: translate(50px,50px) rotate(60deg); } }
+        @keyframes moveShape2 { from { transform: translate(70px,70px) rotate(-45deg); } to { transform: translate(-70px,-70px) rotate(-15deg); } }
+        .progress-bar { position: fixed; top: 0; left: 0; height: 5px; background-color: var(--accent-green); box-shadow: 0 0 10px var(--accent-green); z-index: 1001; width: 0; transition: width 0.2s linear; }
+        .back-to-top {
+            position: fixed; bottom: 30px; right: 30px; width: 55px; height: 55px;
+            background-color: var(--secondary-blue); color: var(--white); border-radius: 50%;
+            display: flex; justify-content: center; align-items: center; font-size: 1.5rem;
+            box-shadow: 0 6px 20px var(--shadow-medium); cursor: pointer; opacity: 0; visibility: hidden; transition: var(--transition); z-index: 999;
+        }
+        .back-to-top.visible { opacity: 1; visibility: visible; }
+        .back-to-top:hover { background-color: var(--primary-blue); transform: translateY(-5px); }
+        nav { position: fixed; top: 0; left: 0; width: 100%; background: var(--white); box-shadow: 0 4px 20px rgba(0,0,0,0.08); z-index: 1000; padding: 1.2rem 0; }
+        .nav-container { max-width: 1200px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; padding: 0 2rem; }
+        .logo { font-size: 1.8rem; font-weight: 700; color: var(--primary-blue); display: flex; align-items: center; text-decoration: none; }
+        .logo i { margin-right: 0.7rem; font-size: 2rem; color: var(--accent-green); }
+        .hamburger { width: 30px; height: 22px; display: flex; flex-direction: column; justify-content: space-between; cursor: pointer; z-index: 1004; }
+        .hamburger span { display: block; height: 3px; width: 100%; background: var(--primary-blue); border-radius: 3px; transition: var(--transition); }
+        .hamburger.active span:nth-child(1) { transform: rotate(45deg) translate(5px, 6px); }
+        .hamburger.active span:nth-child(2) { opacity: 0; }
+        .hamburger.active span:nth-child(3) { transform: rotate(-45deg) translate(5px, -6px); }
+        .sidebar {
+            position: fixed; top: 80px; right: -300px; width: 300px; height: calc(100vh - 80px);
+            background: linear-gradient(to bottom, #1C3373, #0A1B4F); color: var(--white);
+            transition: var(--transition); z-index: 1002; box-shadow: -5px 0 25px rgba(0,0,0,0.25); overflow-y: auto;
+        }
+        .sidebar.active { right: 0; }
+        .sidebar-menu { padding: 1.5rem 0; }
+        .sidebar-item {
+            padding: 1.2rem 1.8rem; display: flex; align-items: center; justify-content: space-between;
+            color: var(--text-light); text-decoration: none; font-size: 1rem; transition: var(--transition);
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        .sidebar-item:hover { background: rgba(255,255,255,0.12); transform: translateX(-5px); }
+        .sidebar-item.active { background: var(--accent-green); color: var(--primary-blue); font-weight: 600; box-shadow: inset 5px 0 0 var(--white); }
+        .sidebar-item.active i { color: var(--primary-blue); }
+        .sidebar-item i { font-size: 1.2rem; color: var(--text-light); }
+        main { margin-top: 80px; padding: 2rem; min-height: calc(100vh - 80px); }
+        .container {
+            max-width: 1150px; margin: 2rem auto; background: var(--white); border-radius: 20px;
+            box-shadow: 0 15px 50px var(--shadow-light); padding: 3rem;
+            opacity: 0; transform: translateY(30px); transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+        }
+        .container.visible { opacity: 1; transform: translateY(0); }
+        h1 { font-size: 2.6rem; color: var(--primary-blue); text-align: center; margin-bottom: 0.5rem; font-weight: 700; }
+        .subtitle { text-align: center; color: var(--grey-text); margin-bottom: 2rem; }
+        .card-section {
+            background: var(--bg-light); border-radius: 15px; padding: 2rem;
+            box-shadow: 0 5px 15px var(--shadow-light); margin-bottom: 2rem; border-left: 5px solid var(--secondary-blue);
+        }
+        .card-section h3 { color: var(--secondary-blue); font-size: 1.4rem; margin-bottom: 1.2rem; display: flex; align-items: center; gap: 0.6rem; }
+        .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; }
+        .form-group { margin-bottom: 1rem; }
+        .form-group label { display: block; font-weight: 600; color: var(--primary-blue); margin-bottom: 0.4rem; }
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%; padding: 0.8rem 1rem; border: 1px solid #d0d7e2; border-radius: 10px;
+            font-size: 0.95rem; background: var(--white);
+        }
+        .form-group textarea { min-height: 95px; resize: vertical; }
+        .btn-primary {
+            padding: 0.85rem 1.8rem; background: var(--secondary-blue); color: var(--white); border: none;
+            border-radius: 10px; font-size: 1rem; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 0.5rem;
+        }
+        .btn-primary:hover { background: var(--primary-blue); }
+        .classes-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 1.2rem; }
+        .class-card { background: var(--white); border-radius: 14px; overflow: hidden; box-shadow: 0 5px 15px var(--shadow-light); display: flex; flex-direction: column; }
+        .class-thumb { height: 165px; background: var(--primary-blue); position: relative; display: flex; align-items: center; justify-content: center; color: var(--white); }
+        .class-thumb img { width: 100%; height: 100%; object-fit: cover; }
+        .class-body { padding: 1.2rem; flex: 1; display: flex; flex-direction: column; justify-content: space-between; }
+        .class-title { font-size: 1.1rem; font-weight: 600; color: var(--primary-blue); margin-bottom: 0.4rem; }
+        .class-meta { font-size: 0.86rem; color: var(--grey-text); margin-bottom: 0.5rem; display: flex; gap: 0.8rem; flex-wrap: wrap; }
+        .class-actions { display: flex; gap: 0.5rem; margin-top: 0.8rem; }
+        .btn-secondary { padding: 0.55rem 0.95rem; background: var(--secondary-blue); color: var(--white); border: none; border-radius: 8px; cursor: pointer; font-size: 0.9rem; }
+        .btn-danger { padding: 0.55rem 0.95rem; background: #e74c3c; color: var(--white); border: none; border-radius: 8px; cursor: pointer; font-size: 0.9rem; }
+        .status-banner { display: none; padding: 0.9rem 1.2rem; border-radius: 10px; margin-bottom: 1.5rem; font-weight: 500; }
+        .status-banner.success { display: block; background: rgba(46,204,113,0.15); color: #1d7a46; border-left: 4px solid var(--accent-green); }
+        .status-banner.error { display: block; background: rgba(231,76,60,0.15); color: #a93226; border-left: 4px solid #e74c3c; }
+        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.65); z-index: 2000; align-items: center; justify-content: center; padding: 1rem; }
+        .modal.active { display: flex; }
+        .modal-content { background: var(--white); border-radius: 16px; max-width: 820px; width: 100%; padding: 1.8rem; }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
+        .modal-close { background: none; border: none; font-size: 1.6rem; cursor: pointer; }
+        .video-frame { width: 100%; aspect-ratio: 16/9; border: none; border-radius: 10px; background: #000; }
+        .empty-state { text-align: center; padding: 2rem; color: var(--grey-text); font-style: italic; }
+        @media (max-width: 768px) { main { padding: 1.2rem; } .container { padding: 1.5rem; } h1 { font-size: 2rem; } }
+    </style>
+</head>
+<body>
+    <div class="progress-bar" id="progressBar"></div>
+    <div class="back-to-top" id="backToTop"><i class="fas fa-arrow-up"></i></div>
+    <nav>
+        <div class="nav-container">
+            <a href="{{ url_for('teacher_home') }}" class="logo"><i class="fas fa-graduation-cap"></i>Smart Classroom - Teacher Portal</a>
+            <div class="hamburger" id="hamburger"><span></span><span></span><span></span></div>
+        </div>
+    </nav>
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-menu">
+            <a href="{{ url_for('teacher_home') }}" class="sidebar-item"><span>Home</span><i class="fas fa-home"></i></a>
+            <a href="{{ url_for('teacher_assignment') }}" class="sidebar-item"><span>Post an Assignment</span><i class="fas fa-calendar-alt"></i></a>
+            <a href="{{ url_for('teacher_notice') }}" class="sidebar-item"><span>Post a Notice</span><i class="fas fa-bell"></i></a>
+            <a href="{{ url_for('teacher_recorded_class') }}" class="sidebar-item active"><span>Recorded Classes</span><i class="fas fa-video"></i></a>
+            <a href="{{ url_for('teacher_query') }}" class="sidebar-item"><span>Send a Query</span><i class="fas fa-question-circle"></i></a>
+            <a href="{{ url_for('teacher_fa') }}" class="sidebar-item"><span>Faculty Advisor</span><i class="fas fa-user-graduate"></i></a>
+            <a href="{{ url_for('teacher_study') }}" class="sidebar-item"><span>Upload Study Material</span><i class="fas fa-book"></i></a>
+            <a href="{{ url_for('teacher_analytics') }}" class="sidebar-item"><span>Students Analytics Dashboard</span><i class="fas fa-chart-bar"></i></a>
+            <a href="{{ url_for('teacher_attendance') }}" class="sidebar-item"><span>Attendance Management</span><i class="fas fa-calendar-check"></i></a>
+            <a href="{{ url_for('teacher_profile') }}" class="sidebar-item"><span>Teacher Profile</span><i class="fas fa-user"></i></a>
+            <a href="{{ url_for('teacher_notes') }}" class="sidebar-item"><span>Recorded Notes</span><i class="fas fa-sticky-note"></i></a>
+            <a href="{{ url_for('teacher_settings') }}" class="sidebar-item"><span>Settings</span><i class="fas fa-cog"></i></a>
+        </div>
+    </div>
+
+    <main>
+        <div class="container">
+            <h1>Recorded Classes</h1>
+            <p class="subtitle">Publish recorded lecture links or video files for student replay</p>
+
+            <div id="statusBanner" class="status-banner"></div>
+
+            <div class="card-section">
+                <h3><i class="fas fa-video"></i> Add Recorded Class</h3>
+                <form id="recordedForm">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="classTitle">Lecture Title</label>
+                            <input type="text" id="classTitle" required placeholder="e.g., Sorting Algorithms Deep Dive">
+                        </div>
+                        <div class="form-group">
+                            <label for="classSubject">Subject</label>
+                            <input type="text" id="classSubject" required value="{{ teacher_data.subject if teacher_data.subject != 'Not available' else '' }}" placeholder="e.g., Computer Science">
+                        </div>
+                        <div class="form-group">
+                            <label for="classRoom">Classroom</label>
+                            <input type="text" id="classRoom" value="Room A101" placeholder="e.g., Room A101">
+                        </div>
+                    </div>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="videoUrl">YouTube / Video URL</label>
+                            <input type="url" id="videoUrl" placeholder="https://www.youtube.com/watch?v=...">
+                        </div>
+                        <div class="form-group">
+                            <label for="videoFile">Or Upload Video File (.mp4, .webm)</label>
+                            <input type="file" id="videoFile" accept=".mp4,.webm,.ogg,.mov">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="classDescription">Description</label>
+                        <textarea id="classDescription" placeholder="Key topics covered in this lecture..."></textarea>
+                    </div>
+                    <button type="submit" class="btn-primary"><i class="fas fa-upload"></i> Publish Recording</button>
+                </form>
+            </div>
+
+            <div class="card-section">
+                <h3><i class="fas fa-film"></i> Published Recordings</h3>
+                <div id="classesGrid" class="classes-grid"><p class="empty-state">Loading recordings...</p></div>
+            </div>
+        </div>
+    </main>
+
+    <div class="modal" id="videoModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modalTitle">Class Recording</h3>
+                <button class="modal-close" id="closeVideoModal">&times;</button>
+            </div>
+            <iframe id="modalIframe" class="video-frame" style="display:none;" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+            <video id="modalVideo" class="video-frame" controls style="display:none;"></video>
+        </div>
+    </div>
+
+    <script>
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text == null ? '' : String(text);
+            return div.innerHTML;
+        }
+        const hamburger = document.getElementById('hamburger');
+        const sidebar = document.getElementById('sidebar');
+        hamburger.addEventListener('click', (e) => { e.stopPropagation(); hamburger.classList.toggle('active'); sidebar.classList.toggle('active'); });
+        document.addEventListener('click', (e) => { if (!sidebar.contains(e.target) && !hamburger.contains(e.target)) { sidebar.classList.remove('active'); hamburger.classList.remove('active'); } });
+        window.addEventListener('scroll', () => {
+            const docH = document.documentElement.scrollHeight - window.innerHeight;
+            document.getElementById('progressBar').style.width = (docH > 0 ? (window.scrollY / docH) * 100 : 0) + '%';
+            document.getElementById('backToTop').classList.toggle('visible', window.scrollY > 400);
+        });
+        document.getElementById('backToTop').addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
+
+        function showBanner(msg, isError = false) {
+            const el = document.getElementById('statusBanner');
+            el.textContent = msg;
+            el.className = 'status-banner ' + (isError ? 'error' : 'success');
+            setTimeout(() => { el.className = 'status-banner'; }, 4000);
+        }
+
+        let cachedClasses = [];
+
+        async function loadClasses() {
+            const grid = document.getElementById('classesGrid');
+            try {
+                const res = await fetch('/api/recorded_classes');
+                const data = await res.json();
+                if (data.status !== 'success') throw new Error(data.message || 'Error loading classes');
+                cachedClasses = data.classes || [];
+                if (!cachedClasses.length) {
+                    grid.innerHTML = '<p class="empty-state">No recorded classes published yet.</p>';
+                    return;
+                }
+                grid.innerHTML = '';
+                cachedClasses.forEach(cls => {
+                    const card = document.createElement('div');
+                    card.className = 'class-card';
+                    const thumbHtml = cls.thumbnail
+                        ? `<img src="${escapeHtml(cls.thumbnail)}" alt="${escapeHtml(cls.title)}">`
+                        : '<i class="fas fa-play-circle fa-3x"></i>';
+                    card.innerHTML = `
+                        <div class="class-thumb">${thumbHtml}</div>
+                        <div class="class-body">
+                            <div>
+                                <div class="class-title">${escapeHtml(cls.title)}</div>
+                                <div class="class-meta">
+                                    <span><i class="fas fa-book"></i> ${escapeHtml(cls.subject)}</span>
+                                    <span><i class="fas fa-door-open"></i> ${escapeHtml(cls.classroom)}</span>
+                                </div>
+                                <p style="font-size:0.9rem;color:var(--grey-text);">${escapeHtml(cls.description || '')}</p>
+                            </div>
+                            <div class="class-actions">
+                                <button type="button" class="btn-secondary play-btn" data-id="${escapeHtml(cls.id)}"><i class="fas fa-play"></i> Preview</button>
+                                <button type="button" class="btn-danger delete-class-btn" data-id="${escapeHtml(cls.id)}"><i class="fas fa-trash"></i> Delete</button>
+                            </div>
+                        </div>
+                    `;
+                    grid.appendChild(card);
+                });
+            } catch (err) {
+                grid.innerHTML = `<p class="empty-state">${escapeHtml(err.message)}</p>`;
+            }
+        }
+
+        document.getElementById('recordedForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData();
+            formData.append('title', document.getElementById('classTitle').value.trim());
+            formData.append('subject', document.getElementById('classSubject').value.trim());
+            formData.append('classroom', document.getElementById('classRoom').value.trim());
+            formData.append('videoUrl', document.getElementById('videoUrl').value.trim());
+            formData.append('description', document.getElementById('classDescription').value.trim());
+            const videoFile = document.getElementById('videoFile').files[0];
+            if (videoFile) formData.append('videoFile', videoFile);
+
+            try {
+                const res = await fetch('/api/recorded_classes', { method: 'POST', body: formData });
+                const data = await res.json();
+                if (data.status !== 'success') throw new Error(data.message || 'Failed to publish recording');
+                document.getElementById('recordedForm').reset();
+                showBanner('Recorded class published successfully!');
+                loadClasses();
+            } catch (err) {
+                showBanner(err.message, true);
+            }
+        });
+
+        function closePlayer() {
+            const modal = document.getElementById('videoModal');
+            const iframe = document.getElementById('modalIframe');
+            const video = document.getElementById('modalVideo');
+            iframe.src = '';
+            video.pause();
+            video.src = '';
+            modal.classList.remove('active');
+        }
+
+        document.getElementById('classesGrid').addEventListener('click', async (e) => {
+            const playBtn = e.target.closest('.play-btn');
+            if (playBtn) {
+                const cls = cachedClasses.find(c => c.id === playBtn.dataset.id);
+                if (!cls) return;
+                document.getElementById('modalTitle').textContent = cls.title;
+                const iframe = document.getElementById('modalIframe');
+                const video = document.getElementById('modalVideo');
+                const isEmbed = cls.videoType === 'embed' || (cls.videoUrl && (cls.videoUrl.includes('/embed/') || cls.videoUrl.includes('youtube.com')));
+                if (isEmbed) {
+                    video.style.display = 'none';
+                    video.src = '';
+                    iframe.style.display = 'block';
+                    iframe.src = cls.videoUrl || '';
+                } else {
+                    iframe.style.display = 'none';
+                    iframe.src = '';
+                    video.style.display = 'block';
+                    video.src = cls.videoUrl || '';
+                }
+                document.getElementById('videoModal').classList.add('active');
+                return;
+            }
+            const delBtn = e.target.closest('.delete-class-btn');
+            if (delBtn) {
+                if (!confirm('Delete this recorded class?')) return;
+                const res = await fetch(`/api/recorded_classes/${encodeURIComponent(delBtn.dataset.id)}`, { method: 'DELETE' });
+                const data = await res.json();
+                if (data.status === 'success') {
+                    showBanner('Recorded class deleted.');
+                    loadClasses();
+                } else {
+                    showBanner(data.message || 'Delete failed', true);
+                }
+            }
+        });
+
+        document.getElementById('closeVideoModal').addEventListener('click', closePlayer);
+        window.addEventListener('click', (e) => { if (e.target === document.getElementById('videoModal')) closePlayer(); });
+
+        window.addEventListener('load', () => {
+            document.querySelector('.container').classList.add('visible');
+            loadClasses();
+        });
+    </script>
+</body>
+</html>

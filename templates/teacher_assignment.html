@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Classroom - Post an Assignment</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+        :root {
+            --primary-blue: #0A1B4F;
+            --secondary-blue: #1C3373;
+            --accent-green: #2ecc71;
+            --text-dark: #333;
+            --text-light: #f4f7fa;
+            --bg-light: #f8faff;
+            --white: #ffffff;
+            --grey-text: #6e7a8e;
+            --shadow-light: rgba(0, 0, 0, 0.08);
+            --shadow-medium: rgba(0, 0, 0, 0.15);
+            --transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+        body {
+            background: linear-gradient(135deg, #e0f2f7, #c7e8f0);
+            min-height: 100vh;
+            color: var(--text-dark);
+            position: relative;
+            overflow-x: hidden;
+        }
+        body::before, body::after {
+            content: ''; position: absolute; background-repeat: no-repeat; opacity: 0.1; z-index: -1;
+        }
+        body::before {
+            width: 300px; height: 300px; top: -50px; left: -50px;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'%3E%3Cdefs%3E%3ClinearGradient id='a' x1='0%' y1='0%' x2='100%' y2='100%'%3E%3Cstop offset='0%' stop-color='%231C3373'/%3E%3Cstop offset='100%' stop-color='%230A1B4F'/%3E%3C/linearGradient%3E%3C/defs%3E%3Ccircle cx='100' cy='100' r='90' fill='url(%23a)'/%3E%3C/svg%3E");
+            transform: rotate(30deg);
+            animation: moveShape1 10s infinite alternate;
+        }
+        body::after {
+            width: 250px; height: 250px; bottom: -70px; right: -70px;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'%3E%3Cdefs%3E%3ClinearGradient id='a' x1='0%' y1='0%' x2='100%' y2='100%'%3E%3Cstop offset='0%' stop-color='%232ecc71'/%3E%3Cstop offset='100%' stop-color='%231C3373'/%3E%3C/linearGradient%3E%3C/defs%3E%3Cpolygon points='100,0 200,75 160,200 40,200 0,75' fill='url(%23a)'/%3E%3C/svg%3E");
+            transform: rotate(-45deg);
+            animation: moveShape2 12s infinite alternate-reverse;
+        }
+        @keyframes moveShape1 {
+            from { transform: translate(-50px, -50px) rotate(30deg); }
+            to { transform: translate(50px, 50px) rotate(60deg); }
+        }
+        @keyframes moveShape2 {
+            from { transform: translate(70px, 70px) rotate(-45deg); }
+            to { transform: translate(-70px, -70px) rotate(-15deg); }
+        }
+        .progress-bar {
+            position: fixed; top: 0; left: 0; height: 5px; background-color: var(--accent-green);
+            box-shadow: 0 0 10px var(--accent-green); z-index: 1001; width: 0; transition: width 0.2s linear;
+        }
+        .back-to-top {
+            position: fixed; bottom: 30px; right: 30px; width: 55px; height: 55px;
+            background-color: var(--secondary-blue); color: var(--white); border-radius: 50%;
+            display: flex; justify-content: center; align-items: center; font-size: 1.5rem;
+            box-shadow: 0 6px 20px var(--shadow-medium); cursor: pointer; opacity: 0; visibility: hidden;
+            transition: var(--transition); z-index: 999;
+        }
+        .back-to-top.visible { opacity: 1; visibility: visible; }
+        .back-to-top:hover { background-color: var(--primary-blue); transform: translateY(-5px); }
+        nav {
+            position: fixed; top: 0; left: 0; width: 100%; background: var(--white);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08); z-index: 1000; padding: 1.2rem 0;
+        }
+        .nav-container {
+            max-width: 1200px; margin: 0 auto; display: flex; justify-content: space-between;
+            align-items: center; padding: 0 2rem;
+        }
+        .logo {
+            font-size: 1.8rem; font-weight: 700; color: var(--primary-blue);
+            display: flex; align-items: center; text-decoration: none;
+        }
+        .logo i { margin-right: 0.7rem; font-size: 2rem; color: var(--accent-green); }
+        .hamburger {
+            width: 30px; height: 22px; display: flex; flex-direction: column;
+            justify-content: space-between; cursor: pointer; z-index: 1004;
+        }
+        .hamburger span {
+            display: block; height: 3px; width: 100%; background: var(--primary-blue);
+            border-radius: 3px; transition: var(--transition);
+        }
+        .hamburger.active span:nth-child(1) { transform: rotate(45deg) translate(5px, 6px); }
+        .hamburger.active span:nth-child(2) { opacity: 0; }
+        .hamburger.active span:nth-child(3) { transform: rotate(-45deg) translate(5px, -6px); }
+        .sidebar {
+            position: fixed; top: 80px; right: -300px; width: 300px; height: calc(100vh - 80px);
+            background: linear-gradient(to bottom, #1C3373, #0A1B4F); color: var(--white);
+            transition: var(--transition); z-index: 1002; box-shadow: -5px 0 25px rgba(0, 0, 0, 0.25);
+            overflow-y: auto;
+        }
+        .sidebar.active { right: 0; }
+        .sidebar-menu { padding: 1.5rem 0; }
+        .sidebar-item {
+            padding: 1.2rem 1.8rem; display: flex; align-items: center; justify-content: space-between;
+            color: var(--text-light); text-decoration: none; font-size: 1rem; transition: var(--transition);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .sidebar-item:hover { background: rgba(255, 255, 255, 0.12); transform: translateX(-5px); }
+        .sidebar-item.active {
+            background: var(--accent-green); color: var(--primary-blue); font-weight: 600;
+            box-shadow: inset 5px 0 0 var(--white);
+        }
+        .sidebar-item.active i { color: var(--primary-blue); }
+        .sidebar-item i { font-size: 1.2rem; color: var(--text-light); }
+        main { margin-top: 80px; padding: 2rem; min-height: calc(100vh - 80px); }
+        .container {
+            max-width: 1100px; margin: 2rem auto; background: var(--white); border-radius: 20px;
+            box-shadow: 0 15px 50px var(--shadow-light); padding: 3rem;
+            opacity: 0; transform: translateY(30px); transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+        }
+        .container.visible { opacity: 1; transform: translateY(0); }
+        h1 { font-size: 2.6rem; color: var(--primary-blue); text-align: center; margin-bottom: 0.5rem; font-weight: 700; }
+        .subtitle { text-align: center; color: var(--grey-text); margin-bottom: 2rem; }
+        .card-section {
+            background: var(--bg-light); border-radius: 15px; padding: 2rem;
+            box-shadow: 0 5px 15px var(--shadow-light); margin-bottom: 2rem;
+            border-left: 5px solid var(--secondary-blue);
+        }
+        .card-section h3 {
+            color: var(--secondary-blue); font-size: 1.4rem; margin-bottom: 1.2rem;
+            display: flex; align-items: center; gap: 0.6rem;
+        }
+        .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; }
+        .form-group { margin-bottom: 1rem; }
+        .form-group label { display: block; font-weight: 600; color: var(--primary-blue); margin-bottom: 0.4rem; font-size: 0.95rem; }
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%; padding: 0.8rem 1rem; border: 1px solid #d0d7e2; border-radius: 10px;
+            font-size: 0.95rem; background: var(--white); transition: var(--transition);
+        }
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+            outline: none; border-color: var(--accent-green); box-shadow: 0 0 0 3px rgba(46, 204, 113, 0.2);
+        }
+        .form-group textarea { min-height: 110px; resize: vertical; }
+        .btn-primary {
+            padding: 0.85rem 1.8rem; background: var(--secondary-blue); color: var(--white); border: none;
+            border-radius: 10px; font-size: 1rem; font-weight: 600; cursor: pointer; transition: var(--transition);
+            display: inline-flex; align-items: center; gap: 0.5rem;
+        }
+        .btn-primary:hover { background: var(--primary-blue); transform: translateY(-2px); }
+        .btn-danger {
+            padding: 0.55rem 1rem; background: #e74c3c; color: var(--white); border: none;
+            border-radius: 8px; font-size: 0.9rem; font-weight: 500; cursor: pointer;
+        }
+        .btn-danger:hover { background: #c0392b; }
+        .btn-secondary {
+            padding: 0.55rem 1rem; background: var(--secondary-blue); color: var(--white); border: none;
+            border-radius: 8px; font-size: 0.9rem; font-weight: 500; cursor: pointer;
+        }
+        .btn-secondary:hover { background: var(--primary-blue); }
+        .status-banner {
+            display: none; padding: 0.9rem 1.2rem; border-radius: 10px; margin-bottom: 1.5rem; font-weight: 500;
+        }
+        .status-banner.success { display: block; background: rgba(46, 204, 113, 0.15); color: #1d7a46; border-left: 4px solid var(--accent-green); }
+        .status-banner.error { display: block; background: rgba(231, 76, 60, 0.15); color: #a93226; border-left: 4px solid #e74c3c; }
+        .assignment-card {
+            background: var(--white); border-radius: 12px; padding: 1.4rem; margin-bottom: 1rem;
+            box-shadow: 0 3px 10px var(--shadow-light); border-left: 4px solid var(--accent-green);
+        }
+        .assignment-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; flex-wrap: wrap; margin-bottom: 0.6rem; }
+        .assignment-title { font-size: 1.15rem; font-weight: 600; color: var(--primary-blue); }
+        .assignment-meta { font-size: 0.9rem; color: var(--grey-text); margin-bottom: 0.6rem; display: flex; flex-wrap: wrap; gap: 1rem; }
+        .assignment-desc { color: var(--text-dark); line-height: 1.6; margin-bottom: 0.8rem; }
+        .assignment-actions { display: flex; gap: 0.6rem; flex-wrap: wrap; align-items: center; }
+        .badge {
+            display: inline-block; padding: 0.25rem 0.7rem; border-radius: 999px; font-size: 0.82rem; font-weight: 600;
+            background: rgba(28, 51, 115, 0.1); color: var(--secondary-blue);
+        }
+        .empty-state { text-align: center; padding: 2rem; color: var(--grey-text); font-style: italic; }
+        .modal {
+            display: none; position: fixed; z-index: 2000; inset: 0; background: rgba(0,0,0,0.5);
+            align-items: center; justify-content: center; padding: 1rem;
+        }
+        .modal.active { display: flex; }
+        .modal-content {
+            background: var(--white); border-radius: 16px; max-width: 650px; width: 100%;
+            max-height: 85vh; overflow-y: auto; padding: 2rem; box-shadow: 0 15px 40px rgba(0,0,0,0.25);
+        }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
+        .modal-close { background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--grey-text); }
+        .submission-row {
+            display: flex; justify-content: space-between; align-items: center; gap: 1rem;
+            padding: 0.8rem; background: var(--bg-light); border-radius: 8px; margin-bottom: 0.6rem;
+        }
+        @media (max-width: 768px) {
+            main { padding: 1.2rem; }
+            .container { padding: 1.5rem; }
+            h1 { font-size: 2rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="progress-bar" id="progressBar"></div>
+    <div class="back-to-top" id="backToTop"><i class="fas fa-arrow-up"></i></div>
+    <nav>
+        <div class="nav-container">
+            <a href="{{ url_for('teacher_home') }}" class="logo">
+                <i class="fas fa-graduation-cap"></i>
+                Smart Classroom - Teacher Portal
+            </a>
+            <div class="hamburger" id="hamburger"><span></span><span></span><span></span></div>
+        </div>
+    </nav>
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-menu">
+            <a href="{{ url_for('teacher_home') }}" class="sidebar-item"><span>Home</span><i class="fas fa-home"></i></a>
+            <a href="{{ url_for('teacher_assignment') }}" class="sidebar-item active"><span>Post an Assignment</span><i class="fas fa-calendar-alt"></i></a>
+            <a href="{{ url_for('teacher_notice') }}" class="sidebar-item"><span>Post a Notice</span><i class="fas fa-bell"></i></a>
+            <a href="{{ url_for('teacher_recorded_class') }}" class="sidebar-item"><span>Recorded Classes</span><i class="fas fa-video"></i></a>
+            <a href="{{ url_for('teacher_query') }}" class="sidebar-item"><span>Send a Query</span><i class="fas fa-question-circle"></i></a>
+            <a href="{{ url_for('teacher_fa') }}" class="sidebar-item"><span>Faculty Advisor</span><i class="fas fa-user-graduate"></i></a>
+            <a href="{{ url_for('teacher_study') }}" class="sidebar-item"><span>Upload Study Material</span><i class="fas fa-book"></i></a>
+            <a href="{{ url_for('teacher_analytics') }}" class="sidebar-item"><span>Students Analytics Dashboard</span><i class="fas fa-chart-bar"></i></a>
+            <a href="{{ url_for('teacher_attendance') }}" class="sidebar-item"><span>Attendance Management</span><i class="fas fa-calendar-check"></i></a>
+            <a href="{{ url_for('teacher_profile') }}" class="sidebar-item"><span>Teacher Profile</span><i class="fas fa-user"></i></a>
+            <a href="{{ url_for('teacher_notes') }}" class="sidebar-item"><span>Recorded Notes</span><i class="fas fa-sticky-note"></i></a>
+            <a href="{{ url_for('teacher_settings') }}" class="sidebar-item"><span>Settings</span><i class="fas fa-cog"></i></a>
+        </div>
+    </div>
+
+    <main>
+        <div class="container">
+            <h1>Post an Assignment</h1>
+            <p class="subtitle">Create assignments for students and review uploaded submissions</p>
+
+            <div id="statusBanner" class="status-banner"></div>
+
+            <div class="card-section">
+                <h3><i class="fas fa-plus-circle"></i> Create New Assignment</h3>
+                <form id="assignmentForm">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="assignmentTitle">Assignment Title</label>
+                            <input type="text" id="assignmentTitle" required placeholder="e.g., Data Structures - Assignment 4">
+                        </div>
+                        <div class="form-group">
+                            <label for="assignmentSubject">Subject</label>
+                            <input type="text" id="assignmentSubject" required value="{{ teacher_data.subject if teacher_data.subject != 'Not available' else '' }}" placeholder="e.g., Computer Science">
+                        </div>
+                        <div class="form-group">
+                            <label for="assignmentDueDate">Due Date</label>
+                            <input type="date" id="assignmentDueDate" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="acceptedFormats">Accepted File Formats</label>
+                            <input type="text" id="acceptedFormats" value=".pdf,.doc,.docx,.py,.zip" placeholder=".pdf,.doc,.docx">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="assignmentDescription">Instructions / Description</label>
+                        <textarea id="assignmentDescription" required placeholder="Describe the assignment requirements, rubric, and submission guidelines..."></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="assignmentAttachment">Reference Attachment (Optional)</label>
+                        <input type="file" id="assignmentAttachment" accept=".pdf,.doc,.docx,.ppt,.pptx,.zip,.txt">
+                    </div>
+                    <button type="submit" class="btn-primary"><i class="fas fa-paper-plane"></i> Publish Assignment</button>
+                </form>
+            </div>
+
+            <div class="card-section">
+                <h3><i class="fas fa-tasks"></i> Posted Assignments</h3>
+                <div id="assignmentsList"><p class="empty-state">Loading assignments...</p></div>
+            </div>
+        </div>
+    </main>
+
+    <div class="modal" id="submissionsModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="submissionsModalTitle">Submissions</h3>
+                <button class="modal-close" id="closeModalBtn">&times;</button>
+            </div>
+            <div id="submissionsList"></div>
+        </div>
+    </div>
+
+    <script>
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text == null ? '' : String(text);
+            return div.innerHTML;
+        }
+
+        const hamburger = document.getElementById('hamburger');
+        const sidebar = document.getElementById('sidebar');
+        hamburger.addEventListener('click', function(e) {
+            e.stopPropagation();
+            hamburger.classList.toggle('active');
+            sidebar.classList.toggle('active');
+        });
+        document.addEventListener('click', (e) => {
+            if (!sidebar.contains(e.target) && !hamburger.contains(e.target)) {
+                sidebar.classList.remove('active');
+                hamburger.classList.remove('active');
+            }
+        });
+
+        window.addEventListener('scroll', () => {
+            const docH = document.documentElement.scrollHeight - window.innerHeight;
+            document.getElementById('progressBar').style.width = (docH > 0 ? (window.scrollY / docH) * 100 : 0) + '%';
+            document.getElementById('backToTop').classList.toggle('visible', window.scrollY > 400);
+        });
+        document.getElementById('backToTop').addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
+
+        function showBanner(message, isError = false) {
+            const banner = document.getElementById('statusBanner');
+            banner.textContent = message;
+            banner.className = 'status-banner ' + (isError ? 'error' : 'success');
+            setTimeout(() => { banner.className = 'status-banner'; }, 4000);
+        }
+
+        let cachedAssignments = [];
+
+        async function loadAssignments() {
+            const container = document.getElementById('assignmentsList');
+            try {
+                const res = await fetch('/api/assignments');
+                const data = await res.json();
+                if (data.status !== 'success') throw new Error(data.message || 'Failed to load assignments');
+                cachedAssignments = data.assignments || [];
+                if (!cachedAssignments.length) {
+                    container.innerHTML = '<p class="empty-state">No assignments posted yet.</p>';
+                    return;
+                }
+                container.innerHTML = '';
+                cachedAssignments.forEach(item => {
+                    const card = document.createElement('div');
+                    card.className = 'assignment-card';
+                    card.innerHTML = `
+                        <div class="assignment-header">
+                            <div class="assignment-title">${escapeHtml(item.title)}</div>
+                            <span class="badge">${item.submission_count || 0} Submissions</span>
+                        </div>
+                        <div class="assignment-meta">
+                            <span><i class="fas fa-book"></i> ${escapeHtml(item.subject)}</span>
+                            <span><i class="fas fa-user"></i> ${escapeHtml(item.teacher_name)}</span>
+                            <span><i class="fas fa-calendar"></i> Due: ${escapeHtml(item.due_display || item.due_date)}</span>
+                        </div>
+                        <div class="assignment-desc">${escapeHtml(item.description)}</div>
+                        ${item.attachment_url ? `<p style="margin-bottom:0.8rem;"><a href="${escapeHtml(item.attachment_url)}" target="_blank" style="color:var(--secondary-blue);font-weight:600;"><i class="fas fa-paperclip"></i> ${escapeHtml(item.attachment_name || 'Download Reference')}</a></p>` : ''}
+                        <div class="assignment-actions">
+                            <button type="button" class="btn-secondary view-subs-btn" data-id="${escapeHtml(item.id)}"><i class="fas fa-folder-open"></i> View Submissions</button>
+                            <button type="button" class="btn-danger delete-assign-btn" data-id="${escapeHtml(item.id)}"><i class="fas fa-trash"></i> Delete</button>
+                        </div>
+                    `;
+                    container.appendChild(card);
+                });
+            } catch (err) {
+                container.innerHTML = `<p class="empty-state">${escapeHtml(err.message)}</p>`;
+            }
+        }
+
+        document.getElementById('assignmentForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData();
+            formData.append('title', document.getElementById('assignmentTitle').value.trim());
+            formData.append('subject', document.getElementById('assignmentSubject').value.trim());
+            formData.append('due_date', document.getElementById('assignmentDueDate').value);
+            formData.append('accepted_formats', document.getElementById('acceptedFormats').value.trim());
+            formData.append('description', document.getElementById('assignmentDescription').value.trim());
+            const attachment = document.getElementById('assignmentAttachment').files[0];
+            if (attachment) formData.append('attachment', attachment);
+
+            try {
+                const res = await fetch('/api/assignments', { method: 'POST', body: formData });
+                const data = await res.json();
+                if (data.status !== 'success') throw new Error(data.message || 'Could not publish assignment');
+                document.getElementById('assignmentForm').reset();
+                showBanner('Assignment published successfully!');
+                loadAssignments();
+            } catch (err) {
+                showBanner(err.message, true);
+            }
+        });
+
+        document.getElementById('assignmentsList').addEventListener('click', async (e) => {
+            const delBtn = e.target.closest('.delete-assign-btn');
+            if (delBtn) {
+                const id = delBtn.dataset.id;
+                if (!confirm('Delete this assignment?')) return;
+                const res = await fetch(`/api/assignments/${encodeURIComponent(id)}`, { method: 'DELETE' });
+                const data = await res.json();
+                if (data.status === 'success') {
+                    showBanner('Assignment deleted.');
+                    loadAssignments();
+                } else {
+                    showBanner(data.message || 'Failed to delete assignment', true);
+                }
+                return;
+            }
+            const subsBtn = e.target.closest('.view-subs-btn');
+            if (subsBtn) {
+                const item = cachedAssignments.find(a => a.id === subsBtn.dataset.id);
+                if (!item) return;
+                document.getElementById('submissionsModalTitle').textContent = `Submissions: ${item.title}`;
+                const listEl = document.getElementById('submissionsList');
+                const subs = item.submissions || [];
+                if (!subs.length) {
+                    listEl.innerHTML = '<p class="empty-state">No student submissions yet.</p>';
+                } else {
+                    listEl.innerHTML = subs.map(s => `
+                        <div class="submission-row">
+                            <div>
+                                <strong>${escapeHtml(s.student_name)}</strong> (${escapeHtml(s.regNo)})<br>
+                                <small style="color:var(--grey-text);">${escapeHtml(s.filename)} &bull; ${new Date(s.submitted_at).toLocaleString()}</small>
+                            </div>
+                            <a href="${escapeHtml(s.file_url)}" target="_blank" class="btn-secondary" style="text-decoration:none;"><i class="fas fa-download"></i> Open</a>
+                        </div>
+                    `).join('');
+                }
+                document.getElementById('submissionsModal').classList.add('active');
+            }
+        });
+
+        document.getElementById('closeModalBtn').addEventListener('click', () => {
+            document.getElementById('submissionsModal').classList.remove('active');
+        });
+        window.addEventListener('click', (e) => {
+            const modal = document.getElementById('submissionsModal');
+            if (e.target === modal) modal.classList.remove('active');
+        });
+
+        window.addEventListener('load', () => {
+            document.querySelector('.container').classList.add('visible');
+            loadAssignments();
+        });
+    </script>
+</body>
+</html>
